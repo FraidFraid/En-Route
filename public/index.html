@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rouen ⇄ Le Havre – LIVE</title>
+  
+  <!-- Icônes pour iOS et Progressive Web App -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Métadonnées pour iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NIinie Live">
+  <meta name="theme-color" content="#000000">
+  <meta name="msapplication-TileColor" content="#000000">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+/* =========================
+   Minimal Moss Pro (UI/UX)
+   — lisible, pro, compact —
+   ========================= */
+
+/* Dark Mode (default) */
+:root, [data-theme="dark"] {
+  color-scheme: dark;
+  /* Couleurs de base - Palette pro moderne */
+  --bg-0:#0A0A0B; --bg-1:#111113; --layer:#1A1A1D;
+  --ink-1:#FFFFFF; --ink-2:#E5E5E7; --ink-3:#A1A1AA;
+  --primary:#3B82F6; --primary-weak:#1E3A8A;
+  --bd:#2A2A2E; --bd-soft:#36363A;
+
+  /* Accents sémantiques modernes */
+  --ok:#10B981; --warn:#F59E0B; --err:#EF4444;
+  --accent:#8B5CF6; /* Violet moderne */
+
+  /* Effets */
+  --radius:12px; --r-sm:8px;
+  --glass: rgba(26, 26, 29, 0.8);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Background gradients */
+  --bg-gradient-1: rgba(59, 130, 246, 0.08);
+  --bg-gradient-2: rgba(139, 92, 246, 0.06);
+}
+
+/* Light Mode */
+[data-theme="light"] {
+  color-scheme: light;
+  /* Couleurs de base - Light palette */
+  --bg-0:#F8FAFC; --bg-1:#FFFFFF; --layer:#F1F5F9;
+  --ink-1:#0F172A; --ink-2:#334155; --ink-3:#64748B;
+  --primary:#2563EB; --primary-weak:#DBEAFE;
+  --bd:#E2E8F0; --bd-soft:#CBD5E1;
+
+  /* Accents sémantiques */
+  --ok:#059669; --warn:#D97706; --err:#DC2626;
+  --accent:#7C3AED;
+
+  /* Effets */
+  --glass: rgba(255, 255, 255, 0.85);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+  /* Background gradients */
+  --bg-gradient-1: rgba(59, 130, 246, 0.05);
+  --bg-gradient-2: rgba(139, 92, 246, 0.04);
+}
+
+/* Layout & typo */
+html,body{height:100%}
+body{
+  margin:0; color:var(--ink-1);
+  background:
+    radial-gradient(1200px 600px at 20% 10%, var(--bg-gradient-1), transparent 70%),
+    radial-gradient(800px 400px at 80% 90%, var(--bg-gradient-2), transparent 65%),
+    linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  font-family:-apple-system,BlinkMacSystemFont,Inter,Segoe UI,system-ui,sans-serif;
+  letter-spacing:0.025em;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+h1{font-weight:800}
+h2{color:var(--ink-2)}
+#now{color:var(--ink-3)}
+
+/* Cartes modernes avec effet glassmorphism */
+.card{
+  background:var(--glass);
+  border:1px solid var(--bd);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  backdrop-filter:blur(16px) saturate(120%);
+  -webkit-backdrop-filter:blur(16px) saturate(120%);
+}
+
+/* Boutons modernes et épurés */
+.btn{
+  background:var(--primary);
+  color:#FFFFFF;
+  border:1px solid var(--primary);
+  border-radius:var(--r-sm);
+  padding:.375rem .5rem;
+  font-weight:500;
+  font-size:0.75rem;
+  transition:all .15s ease;
+  box-shadow:0 1px 3px rgba(0,0,0,.2), 0 0 0 1px rgba(255,255,255,.1) inset;
+}
+.btn:hover{
+  background:rgba(59, 130, 246, 0.9);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.btn:active{transform:translateY(0)}
+.btn:focus-visible{outline:2px solid var(--primary); outline-offset:2px}
+
+/* Statuts modernes */
+.text-emerald-400{color:var(--ok)!important;font-weight:600}
+.text-amber-400{color:var(--warn)!important;font-weight:600}
+.text-red-400{color:var(--err)!important;font-weight:600}
+
+/* Séparateurs / mini-cards */
+.bg-zinc-900{background:rgba(26,26,29,.6)!important;border:1px solid var(--bd)!important}
+.divide-zinc-800 > * + *{border-top:1px solid var(--bd-soft)!important}
+
+/* ————————— Météo ————————— */
+.grid-meteo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:360px){.grid-meteo{gap:10px}}
+#wx-rouen,#wx-lehavre{
+  border-color:var(--bd);
+  background:var(--glass);
+}
+#wx-rouen .text-zinc-400,#wx-lehavre .text-zinc-400{color:var(--ink-3)!important}
+#wx-rouen .temp,#wx-lehavre .temp{font-variant-numeric:tabular-nums}
+[data-role="wx-icon"]{
+  display:inline-grid;place-items:center;width:60px;height:60px;
+  border-radius:var(--r-sm);
+  color:var(--ink-1);
+}
+
+/* ————————— Trains ————————— */
+#trains-havre,#trains-rouen{
+  border-color:var(--bd);
+  background:var(--glass);
+}
+.rows .mono{font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.rows .text-blue-400{color:var(--primary)!important}
+
+/* ————————— Géolocalisation Villes ————————— */
+.city-detected {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.city-normal {
+  background: var(--layer);
+  color: var(--ink-2);
+  border: 1px solid var(--bd);
+}
+
+/* ————————— Theme Toggle Button ————————— */
+.theme-toggle {
+  background: var(--layer);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-sm);
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.theme-toggle:hover {
+  background: var(--bd);
+  transform: scale(1.05);
+}
+.theme-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ink-2);
+  transition: color 0.2s ease;
+}
+.theme-toggle:hover svg {
+  color: var(--ink-1);
+}
+
+/* Light mode specific overrides */
+[data-theme="light"] .text-zinc-100 { color: var(--ink-1) !important; }
+[data-theme="light"] .text-zinc-300 { color: var(--ink-2) !important; }
+[data-theme="light"] .text-zinc-400 { color: var(--ink-3) !important; }
+[data-theme="light"] .text-zinc-500 { color: var(--ink-3) !important; }
+[data-theme="light"] .bg-zinc-800\/50 { background: var(--layer) !important; }
+[data-theme="light"] .hover\:bg-zinc-700\/50:hover { background: var(--bd) !important; }
+[data-theme="light"] .border-zinc-700\/50 { border-color: var(--bd) !important; }
+[data-theme="light"] .border-zinc-800 { border-color: var(--bd) !important; }
+[data-theme="light"] .divide-zinc-800 > * + * { border-color: var(--bd-soft) !important; }
+[data-theme="light"] .bg-blue-600 { background: var(--primary) !important; }
+
+/* ————————— Horoscope et Todo SUPPRIMÉS ————————— */
+
+/* Layout desktop optimisé - Compact et bien espacé */
+@media (min-width: 768px) {
+  /* Cartes plus compactes avec hauteur réduite */
+  .card {
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Padding réduit pour les cartes */
+  .card {
+    padding: 0.875rem !important; /* 14px au lieu de 16px */
+  }
+}
+
+/* Optimisations générales pour un affichage plus compact */
+.card {
+  padding: 0.75rem; /* 12px sur mobile, overridé sur desktop */
+}
+
+/* Espacement entre les sections principales */
+main > section + section {
+  margin-top: 1rem;
+}
+
+/* Réduire les marges internes des sections météo */
+.grid-meteo {
+  gap: 0.75rem;
+}
+
+/* Micro-animations sobres */
+@media (prefers-reduced-motion:no-preference){
+  .card{animation:fadeIn .22s ease both}
+  @keyframes fadeIn{from{opacity:.0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  
+  /* Animation de rotation pour les loaders */
+  .animate-spin{animation:spin 1s linear infinite}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  
+  /* Animations pour notifications */
+  @keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:none}}
+  @keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(100%)}}
+}
+
+  </style>
+</head>
+<body class="text-zinc-100 antialiased">
+  <div class="mx-auto max-w-5xl px-4 py-6">
+    <header class="mb-6">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold tracking-tight">EN ROUTE</h1>
+            <!-- 🚂 Surveillance temps réel - Indicateur discret -->
+            <button id="train-monitoring-toggle" class="relative transition-all duration-200 hover:scale-110" title="Surveillance temps réel Rouen ⇄ Le Havre - Activée">
+              <div class="w-3 h-3 bg-green-500 rounded-full shadow-md border-2 border-green-400/30"></div>
+              <div class="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-pulse opacity-40"></div>
+            </button>
+          </div>
+          <div class="flex items-center gap-3">
+            <p id="now" class="text-sm text-zinc-400 flex items-center gap-2 font-mono">
+              <i data-lucide="clock" class="w-4 h-4"></i>
+              <span>—</span>
+            </p>
+            <!-- Theme Toggle Button -->
+            <button id="theme-toggle" class="theme-toggle" title="Changer de thème">
+              <i data-lucide="sun" class="theme-icon-light hidden"></i>
+              <i data-lucide="moon" class="theme-icon-dark"></i>
+            </button>
+          </div>
+        </div>
+        <div class="border-t border-zinc-700/50"></div>
+        <h2 class="text-base text-zinc-300 flex items-center justify-center gap-3 py-1">
+          <span id="city-rouen" class="px-3 py-2 rounded-lg transition-all duration-200 cursor-default bg-zinc-800/50 hover:bg-zinc-700/50">Rouen</span>
+          <span class="text-zinc-500 text-lg">⇄</span>
+          <span id="city-lehavre" class="px-3 py-2 rounded-lg transition-all duration-200 cursor-default bg-zinc-800/50 hover:bg-zinc-700/50">Le Havre</span>
+        </h2>
+      </div>
+    </header>
+
+    <main class="space-y-4">
+      <!-- Météo (2 cartes côte à côte) -->
+      <section class="grid grid-cols-2 gap-3">
+        <div id="wx-rouen" class="card weather-city" data-city="rouen"></div>
+        <div id="wx-lehavre" class="card weather-city" data-city="lehavre"></div>
+      </section>
+
+      <!-- Trains (section suivante) -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div id="trains-havre" class="card train-direction" data-direction="rouen-lehavre"></div>
+        <div id="trains-rouen" class="card train-direction" data-direction="lehavre-rouen"></div>
+      </section>
+    </main>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Theme Management
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'dark'); // Default to dark
+    document.documentElement.setAttribute('data-theme', theme);
+    updateThemeIcon(theme);
+  }
+
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+
+    // Update meta theme-color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', newTheme === 'dark' ? '#000000' : '#FFFFFF');
+    }
+  }
+
+  function updateThemeIcon(theme) {
+    const lightIcon = document.querySelector('.theme-icon-light');
+    const darkIcon = document.querySelector('.theme-icon-dark');
+    if (lightIcon && darkIcon) {
+      if (theme === 'dark') {
+        lightIcon.classList.add('hidden');
+        darkIcon.classList.remove('hidden');
+      } else {
+        lightIcon.classList.remove('hidden');
+        darkIcon.classList.add('hidden');
+      }
+    }
+  }
+
+  // Initialize theme immediately (before DOM loads) to prevent flash
+  initTheme();
+
+  // ---------- Config
+  const TIMEZONE = 'Europe/Paris';
+  const TRAIN_API = '/api/departures';
+  const CITY_A = { name: 'Rouen',    lat: 49.4431, lon: 1.0993 };
+  const CITY_B = { name: 'Le Havre', lat: 49.4944, lon: 0.1079 };
+
+  // ---------- Utils
+  const OPEN_METEO = (lat, lon) =>
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,weather_code` +
+    `&timezone=${encodeURIComponent(TIMEZONE)}`;
+
+  // Helper pour créer des icônes Lucide uniformisées
+  function createIcon(iconName, className = 'w-4 h-4') {
+    return `<i data-lucide="${iconName}" class="${className}"></i>`;
+  }
+
+  // Gestion de la surbrillance des villes
+  function highlightDetectedCity(cityName) {
+    const rouenEl = document.getElementById('city-rouen');
+    const lehavreEl = document.getElementById('city-lehavre');
+    
+    // Reset toutes les villes
+    rouenEl.className = 'px-2 py-1 rounded transition-all duration-200 cursor-default city-normal';
+    lehavreEl.className = 'px-2 py-1 rounded transition-all duration-200 cursor-default city-normal';
+    
+    // Surligner la ville détectée
+    if (cityName === 'Rouen' || cityName === 'rouen') {
+      rouenEl.className = 'px-2 py-1 rounded transition-all duration-200 cursor-default city-detected';
+    } else if (cityName === 'Le Havre' || cityName === 'lehavre') {
+      lehavreEl.className = 'px-2 py-1 rounded transition-all duration-200 cursor-default city-detected';
+    }
+  }
+
+  // ========================================
+  // SYSTÈME DE NOTIFICATIONS POUR RETARDS
+  // ========================================
+  
+  // Initialiser l'état des permissions (vérifier si déjà accordées)
+  let notificationPermission = ('Notification' in window && Notification.permission === 'granted');
+  let lastNotifiedDelays = new Set();
+  let delayCheckInterval = null;
+  
+  // Demander la permission pour les notifications
+  async function requestNotificationPermission() {
+    if ('Notification' in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        notificationPermission = (permission === 'granted');
+        
+        // Si permission refusée, utiliser les alertes visuelles
+        if (permission === 'denied') {
+          console.log('🔄 Notifications refusées - basculement sur alertes visuelles');
+          notificationPermission = true; // On simule que ça marche pour activer le système
+        }
+        
+        return notificationPermission;
+      } catch (error) {
+        console.error('❌ Erreur demande permission:', error);
+        // Fallback : utiliser alertes visuelles
+        notificationPermission = true;
+        return true;
+      }
+    }
+    
+    // Pas d'API Notification : utiliser alertes visuelles
+    notificationPermission = true;
+    return true;
+  }
+  
+  // Calculer nouvelle heure avec retard
+  function calculateNewTime(originalTime, delayMinutes) {
+    if (!originalTime || !delayMinutes) return originalTime;
+    
+    const [hours, minutes] = originalTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + delayMinutes;
+    const newHours = Math.floor(totalMinutes / 60) % 24;
+    const newMinutes = totalMinutes % 60;
+    
+    return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+  }
+
+  // Créer une notification de retard
+  function createDelayNotification(trainInfo, delayMinutes) {
+    if (!trainInfo) return;
+    
+    const notificationId = `${trainInfo.numero}_${delayMinutes}`;
+    
+    // Éviter les notifications en double
+    if (lastNotifiedDelays.has(notificationId)) return;
+    lastNotifiedDelays.add(notificationId);
+    
+    const title = `🚂 ${trainInfo.numero} - Retard +${delayMinutes} min`;
+    const body = `Vers ${trainInfo.destination}\nDépart: ${trainInfo.heureDepart} → ${calculateNewTime(trainInfo.heureDepart, delayMinutes)}`;
+    
+    // Essayer les notifications push d'abord
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        const notification = new Notification(title, {
+          body: body,
+          icon: '/android-chrome-192x192.png',
+          badge: '/favicon-32x32.png',
+          tag: notificationId,
+          requireInteraction: false,
+          silent: false
+        });
+        
+        // Auto-fermer après 8 secondes
+  // Suppression du rafraîchissement automatique : pas de fermeture auto
+        console.log('🔔 Notification push envoyée:', title);
+        return;
+      } catch (error) {
+        console.log('❌ Erreur notification push:', error);
+      }
+    }
+    
+    // Fallback : Alerte visuelle dans l'interface
+    showVisualAlert(title, body);
+    console.log('📢 Alerte visuelle envoyée:', title);
+    
+    // Nettoyer le cache après 30 minutes
+  // Suppression du rafraîchissement automatique : pas de nettoyage auto du cache
+    
+    console.log(`🔔 Notification envoyée: Train ${trainInfo.numero} en retard de ${delayMinutes}min`);
+  }
+  
+  // Alerte visuelle dans l'interface
+  function showVisualAlert(title, message) {
+    // Créer le conteneur d'alerte s'il n'existe pas
+    let alertContainer = document.getElementById('visual-alerts');
+    if (!alertContainer) {
+      alertContainer = document.createElement('div');
+      alertContainer.id = 'visual-alerts';
+      alertContainer.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 350px;
+      `;
+      document.body.appendChild(alertContainer);
+    }
+    
+    // Créer l'alerte
+    const alert = document.createElement('div');
+    alert.style.cssText = `
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      padding: 16px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-left: 4px solid #fbbf24;
+      animation: slideIn 0.3s ease-out;
+      position: relative;
+    `;
+    
+    alert.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 8px; padding-right: 20px;">${title}</div>
+      <div style="font-size: 0.9em; opacity: 0.9; white-space: pre-line;">${message}</div>
+      <button onclick="this.parentElement.remove()" style="
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        font-size: 12px;
+      ">×</button>
+    `;
+    
+    // Ajouter l'animation CSS
+    if (!document.getElementById('alert-styles')) {
+      const style = document.createElement('style');
+      style.id = 'alert-styles';
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    alertContainer.appendChild(alert);
+    
+    // Suppression automatique désactivée
+  }
+  
+  // Analyser les retards dans les données de trains
+  function checkForDelays(trainData) {
+    if (!trainData || !Array.isArray(trainData)) return;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    trainData.forEach(train => {
+      try {
+        // Extraire l'heure de départ prévue
+        const [hours, minutes] = train.heureDepart.split(':').map(Number);
+        const scheduledTime = hours * 60 + minutes;
+        
+        // Vérifier si c'est un train dans les 2 prochaines heures
+        const timeDiff = scheduledTime - currentTime;
+        if (timeDiff < 0 || timeDiff > 120) return; // Ignorer si pas dans les 2h
+        
+        // Détecter les retards (basé sur l'heure réelle vs prévue)
+        if (train.heureReelle && train.heureReelle !== train.heureDepart) {
+          const [realHours, realMinutes] = train.heureReelle.split(':').map(Number);
+          const realTime = realHours * 60 + realMinutes;
+          const delayMinutes = realTime - scheduledTime;
+          
+          // Si retard de plus de 3 minutes, notifier
+          if (delayMinutes >= 3) {
+            createDelayNotification(train, delayMinutes);
+          }
+        }
+        
+        // Détecter les suppressions
+        if (train.statut && train.statut.toLowerCase().includes('supprimé')) {
+          createDelayNotification({
+            ...train,
+            numero: train.numero || 'N/A',
+            destination: train.destination || 'Destination inconnue'
+          }, 'SUPPRIMÉ');
+        }
+        
+      } catch (error) {
+        console.log('Erreur analyse retard:', error);
+      }
+    });
+  }
+  
+  // Démarrer la surveillance des retards
+  async function startDelayMonitoring() {
+    const hasPermission = await requestNotificationPermission();
+    
+    if (!hasPermission) {
+      console.log('❌ Notifications refusées - surveillance des retards désactivée');
+      return;
+    }
+    
+    console.log('✅ Surveillance des retards de trains activée');
+    
+  // Surveillance des retards activée
+    
+    // Rafraîchissement automatique désactivé
+  }
+  
+  // Arrêter la surveillance
+  function stopDelayMonitoring() {
+    if (delayCheckInterval) {
+      clearInterval(delayCheckInterval);
+      delayCheckInterval = null;
+      console.log('🔕 Surveillance des retards arrêtée');
+    }
+  }
+  
+  // 🧪 SIMULATION pour tester les notifications
+  function simulateTrainDelays() {
+    console.log('🧪 Simulation de retards de trains...');
+    
+    // Simuler des trains en retard
+    const simulatedDelays = [
+      {
+        line: 'RER A',
+        destination: 'Cergy',
+        scheduledTime: '14:25',
+        actualTime: '14:31',
+        delay: 6,
+        station: 'Châtelet-Les Halles'
+      },
+      {
+        line: 'Métro 1',
+        destination: 'Château de Vincennes',
+        scheduledTime: '14:28',
+        actualTime: '14:33',
+        delay: 5,
+        station: 'République'
+      },
+      {
+        line: 'Transilien H',
+        destination: 'Pontoise',
+        scheduledTime: '14:30',
+        actualTime: '14:38',
+        delay: 8,
+        station: 'Gare du Nord'
+      }
+    ];
+    
+    // Envoyer les notifications pour chaque retard simulé
+    simulatedDelays.forEach((train, index) => {
+      setTimeout(() => {
+        if (notificationPermission && notificationsEnabled) {
+          createDelayNotification(train);
+          console.log(`🚂 Notification simulée ${index + 1}/3:`, train);
+        } else {
+          console.log('❌ Notifications non activées pour la simulation');
+        }
+      }, index * 2000); // Espacement de 2 secondes entre chaque notification
+    });
+    
+    return simulatedDelays;
+  }
+
+  function weatherMeta(code){
+    const m={0:['Ciel clair','sun'],1:['Plutôt clair','cloud-sun'],2:['Partiellement nuageux','cloud-sun'],3:['Couvert','cloud'],
+             45:['Brouillard','cloud-fog'],48:['Brouillard givrant','cloud-fog'],51:['Bruine','cloud-drizzle'],
+             61:['Pluie faible','cloud-rain'],63:['Pluie','cloud-rain'],65:['Pluie forte','cloud-rain'],
+             80:['Averses','cloud-rain'],95:['Orage','cloud-lightning']};
+    return m[code] || ['—','cloud-off'];
+  }
+
+  function fmtTimeHHMM(x){
+    if (typeof x==='string' && x.length===5 && x[2]===':' && !isNaN(+x.slice(0,2)) && !isNaN(+x.slice(3,5))) return x;
+    const d = new Date(x); if (isNaN(d)) return '--:--';
+    return d.toLocaleTimeString('fr-FR',{ hour:'2-digit', minute:'2-digit', hour12:false });
+  }
+
+  function cleanDestination(destination) {
+    if (!destination) return '—';
+    
+    const match = destination.match(/^(.+?)\s*\((.+?)\)$/);
+    if (match) {
+      const [, main, parenthetical] = match;
+      if (main.toLowerCase().includes(parenthetical.toLowerCase())) {
+        return main.trim();
+      }
+    }
+    
+    return destination;
+  }
+
+  function tickNow(){
+    const el = document.getElementById('now'); if(!el) return;
+    el.lastElementChild.textContent = new Date().toLocaleString('fr-FR',{ timeZone: TIMEZONE });
+  }
+
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    const colors = {
+      info: 'var(--primary)',
+      success: 'var(--ok)',
+      warning: 'var(--warn)',
+      error: 'var(--err)'
+    };
+    
+    notification.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 1000;
+      background: var(--glass); border: 1px solid ${colors[type]};
+      border-radius: var(--r-sm); padding: 0.75rem 1rem;
+      color: var(--ink-1); font-size: 0.875rem;
+      backdrop-filter: blur(16px); box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease; max-width: 300px;
+    `;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    lucide.createIcons();
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // ---------- Weather cards
+  async function renderWeather(el, city){
+    el.innerHTML = `
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1 text-xs text-zinc-300"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${city.name}</span></div>
+<button class="btn text-xs px-2 py-1" data-action="refresh">${createIcon('refresh-cw', 'w-3 h-3')}</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="p-2"><span data-role="wx-icon"><i data-lucide="cloud" class="w-8 h-8"></i></span></div>
+<div>
+<div class="text-2xl font-semibold"><span class="temp">–</span><span class="text-sm ml-1">°C</span></div>
+<div class="text-xs text-zinc-400 cond">Chargement…</div>
+</div>
+</div>
+<div class="mt-2 grid grid-cols-3 gap-1 text-xs text-zinc-300">
+<div class="rounded-lg border border-zinc-800 p-1.5"><div class="text-zinc-400 text-[10px]">Ressenti</div><div class="text-xs feel">–</div></div>
+<div class="rounded-lg border border-zinc-800 p-1.5"><div class="text-zinc-400 text-[10px]">Humidité</div><div class="text-xs hum">–</div></div>
+<div class="rounded-lg border border-zinc-800 p-1.5"><div class="text-zinc-400 text-[10px]">Vent</div><div class="text-xs wind">–</div></div>
+</div>
+<div class="mt-1 text-[10px] text-red-400 hidden err"></div>`;
+    lucide.createIcons();
+
+    async function load(isRefresh = false){
+      const err = el.querySelector('.err'); err.classList.add('hidden'); err.textContent='';
+      const refreshBtn = el.querySelector('[data-action="refresh"]');
+      
+      // Feedback visuel de chargement
+      if (isRefresh && refreshBtn) {
+        refreshBtn.innerHTML = createIcon('loader-2', 'w-3 h-3 animate-spin');
+        refreshBtn.disabled = true;
+        lucide.createIcons();
+      }
+      
+      try{
+        const r = await fetch(OPEN_METEO(city.lat, city.lon));
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const j = await r.json();
+        const cur = j.current; if(!cur) throw new Error('no-current');
+
+        const [label, icon] = weatherMeta(cur.weather_code);
+        el.querySelector('.temp').textContent = Math.round(cur.temperature_2m);
+        el.querySelector('.cond').textContent = label;
+        el.querySelector('.feel').textContent = Math.round(cur.apparent_temperature)+'°C';
+        el.querySelector('.hum').textContent  = (cur.relative_humidity_2m ?? '-')+'%';
+        el.querySelector('.wind').textContent = Math.round(cur.wind_speed_10m)+' km/h';
+        const host = el.querySelector('[data-role="wx-icon"]');
+        if (host) { host.innerHTML = `<i data-lucide="${icon}" class="w-8 h-8"></i>`; lucide.createIcons(); }
+        
+        // Notification de succès pour les refreshs manuels
+        if (isRefresh) {
+          showNotification(`${createIcon('check', 'w-3 h-3 inline')} Météo ${city.name} mise à jour`, 'success');
+        }
+      }catch(e){ 
+        err.textContent = 'Météo indisponible'; err.classList.remove('hidden'); 
+        if (isRefresh) {
+          showNotification(`${createIcon('alert-circle', 'w-3 h-3 inline')} Erreur météo ${city.name}`, 'error');
+        }
+      } finally {
+        // Restaurer le bouton refresh
+        if (isRefresh && refreshBtn) {
+          refreshBtn.innerHTML = createIcon('refresh-cw', 'w-3 h-3');
+          refreshBtn.disabled = false;
+          lucide.createIcons();
+        }
+      }
+    }
+    el.addEventListener('click', (ev)=>{ if(ev.target.closest('[data-action="refresh"]')) load(true); });
+    load();
+  }
+
+  // ---------- Trains
+  async function fetchDeps(station, extra={}){
+    const url = `${TRAIN_API}?${new URLSearchParams({ station, ...extra }).toString()}`;
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }
+
+function renderTrainBoard(el, title, stationKey, extra = {}) {
+  el.innerHTML = `
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-1">${createIcon('train', 'w-4 h-4')}<div class="text-xs text-zinc-300">${title}</div></div>
+      <button class="btn text-xs px-2 py-1" data-action="refresh">${createIcon('refresh-cw', 'w-3 h-3')}</button>
+    </div>
+    <div class="divide-y divide-zinc-800 rows"></div>
+    <div class="py-1 text-[10px] text-red-400 hidden error"></div>`;
+  
+  lucide.createIcons();
+
+  async function load(isRefresh = false) {
+    const rowsEl = el.querySelector('.rows');
+    const errEl = el.querySelector('.error');
+    const refreshBtn = el.querySelector('[data-action="refresh"]');
+    
+    // Feedback visuel de chargement
+    if (isRefresh && refreshBtn) {
+      refreshBtn.innerHTML = createIcon('loader-2', 'w-3 h-3 animate-spin');
+      refreshBtn.disabled = true;
+      lucide.createIcons();
+    }
+    
+    rowsEl.innerHTML = '';
+    errEl.classList.add('hidden');
+
+    try {
+      let allTrains = [];
+
+      if (stationKey === 'lehavre' && extra.dest === 'rouen_all') {
+        // 1) Le Havre -> Rouen (direct)
+        try {
+          const r1 = await fetchDeps('lehavre', { dest: 'rouen', limit: 10 });
+          const direct = (r1.rows || []).map(t => ({ ...t, to: 'Rouen', trainType: 'direct' }));
+          allTrains.push(...direct);
+        } catch {}
+
+        // 2) Le Havre -> Paris (via Rouen)
+        try {
+          const r2 = await fetchDeps('lehavre', { dest: 'paris', limit: 10 });
+          const via = (r2.rows || []).map(t => ({ ...t, to: 'Rouen (via Paris)', trainType: 'via_paris' }));
+          allTrains.push(...via);
+        } catch {}
+      } else {
+        // Rouen -> Le Havre ou autres
+        const r = await fetchDeps(stationKey, { ...extra, limit: 10 });
+        allTrains = r.rows || [];
+      }
+
+      // Trier par heure de départ et garder les 3 prochains
+      allTrains = allTrains
+        .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+        .slice(0, parseInt(extra.limit) || 3);
+
+      if (allTrains.length === 0) {
+        rowsEl.innerHTML = '<div class="py-2 text-xs text-zinc-400">Aucun départ</div>';
+        return;
+      }
+
+      allTrains.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'py-3 flex items-center gap-3';
+
+        const statusColor = String(row.status || '').toLowerCase().includes('retard') ? 'text-amber-400' : 'text-emerald-400';
+
+        // N'afficher la voie que si elle existe
+        const platformDisplay = row.platform ? 
+          `<div class=\"px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white\">Voie ${row.platform}</div>` : '';
+
+        // Bloc horaire différencié (HTML)
+        const horaireDiv = document.createElement('div');
+        horaireDiv.className = 'w-14 text-lg mono';
+        horaireDiv.innerHTML = row.horaire_double_html || fmtTimeHHMM(row.time);
+
+        // Bloc voie si présente
+        let platformDiv = null;
+        if (row.platform && String(row.platform).trim() !== '') {
+          platformDiv = document.createElement('div');
+          platformDiv.className = 'px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white';
+          platformDiv.textContent = `Voie ${row.platform}`;
+        }
+
+        div.appendChild(horaireDiv);
+        div.innerHTML += `
+          <div class="flex-1">
+            <div class="text-sm font-medium">${cleanDestination(row.to)}</div>
+            ${row.trainType === 'via_paris' ? '<div class="text-[11px] text-blue-400">Arrêt à Rouen</div>' : ''}
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="text-xs text-zinc-300 w-16">N° ${row.number || '?'}</div>
+          </div>
+          <div class="text-xs w-28 text-right ${statusColor}">${row.status || 'prévu'}</div>
+        `;
+        // Ajout de la voie dans le bloc info train
+        if (platformDiv) {
+          const infoBloc = div.querySelector('.flex.items-center.gap-2');
+          if (infoBloc) infoBloc.appendChild(platformDiv);
+        }
+        rowsEl.appendChild(div);
+      });
+
+    } catch (e) {
+      errEl.textContent = 'Horaires indisponibles';
+      errEl.classList.remove('hidden');
+      if (isRefresh) {
+        showNotification(`${createIcon('alert-circle', 'w-3 h-3 inline')} Erreur trains ${title}`, 'error');
+      }
+    } finally {
+      // Restaurer le bouton refresh et notification de succès
+      if (isRefresh && refreshBtn) {
+        refreshBtn.innerHTML = createIcon('refresh-cw', 'w-3 h-3');
+        refreshBtn.disabled = false;
+        lucide.createIcons();
+        
+        // Notification de succès uniquement si pas d'erreur
+        if (!errEl.classList.contains('hidden')) {
+          // Erreur déjà gérée ci-dessus
+        } else {
+          showNotification(`${createIcon('check', 'w-3 h-3 inline')} Trains mis à jour`, 'success');
+        }
+      }
+    }
+  }
+
+  // Rafraîchissement automatique supprimé
+
+  el.addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-action="refresh"]')) load(true);
+  });
+
+  load();
+}
+
+  // ---------- Todo et Horoscope SUPPRIMÉS
+  // Les sections Todo et Horoscope ont été retirées de l'application
+
+// ---------- Init
+  document.addEventListener('DOMContentLoaded', () => {
+    // Theme toggle event listener
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', toggleTheme);
+    }
+    // Update icons after Lucide initializes
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    updateThemeIcon(currentTheme);
+
+    // Initialisation de l'horloge
+    tickNow();
+    setInterval(tickNow, 1000);
+
+    // � Notifications automatiquement activées
+    let notificationsEnabled = true; // Toujours activé
+
+    
+    // 🔍 Vérification initiale complète des permissions
+    console.log('🔍 Vérification initiale des permissions...');
+    console.log('📱 Notification disponible:', 'Notification' in window);
+    console.log('📱 Permission actuelle:', Notification.permission);
+    console.log('📱 notificationPermission calculée:', notificationPermission);
+    console.log('📱 notificationsEnabled depuis localStorage:', notificationsEnabled);
+    
+    console.log('✅ Système de notifications de retard initialisé');
+    console.log(`📱 État: ${notificationsEnabled ? 'Activé' : 'Désactivé'} | Permission: ${notificationPermission ? 'Accordée' : 'Manquante'}`);
+
+
+
+    // ========================
+    // 🚂 SYSTÈME DE SURVEILLANCE TEMPS RÉEL
+    // ========================
+    let trainServiceWorker = null;
+    let isMonitoringActive = true; // Activé par défaut
+    let monitoringRoutes = [
+      { id: 'rouen-lehavre', from: 'rouen', to: 'lehavre', name: 'Rouen → Le Havre' },
+      { id: 'lehavre-rouen', from: 'lehavre', to: 'rouen', name: 'Le Havre → Rouen' }
+    ];
+
+    // Enregistrer le Service Worker pour les notifications
+    async function registerTrainServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        try {
+          // Nettoyer d'abord toutes les registrations existantes
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of registrations) {
+            if (registration.scope.includes('sw-train-notifications') || 
+                registration.active?.scriptURL?.includes('sw-train-notifications')) {
+              await registration.unregister();
+              console.log('🧹 Ancien Service Worker désinstallé');
+            }
+          }
+          
+          // Attendre un peu pour que le désinstall soit effectif
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Enregistrer un nouveau Service Worker propre
+          const registration = await navigator.serviceWorker.register('/sw-train-notifications.js', {
+            scope: '/',
+            updateViaCache: 'none' // Force le rechargement
+          });
+          
+          // Attendre qu'il soit complètement actif
+          await new Promise((resolve) => {
+            if (registration.active) {
+              resolve();
+            } else if (registration.installing) {
+              registration.installing.addEventListener('statechange', function() {
+                if (this.state === 'activated') {
+                  resolve();
+                }
+              });
+            } else if (registration.waiting) {
+              registration.waiting.addEventListener('statechange', function() {
+                if (this.state === 'activated') {
+                  resolve();
+                }
+              });
+            }
+          });
+          
+          trainServiceWorker = registration;
+          console.log('✅ Service Worker trains enregistré et activé');
+          return registration;
+        } catch (error) {
+          console.error('❌ Erreur Service Worker:', error);
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Démarrer la surveillance temps réel
+    async function startTrainMonitoring() {
+      if (isMonitoringActive) return;
+      
+      console.log('🚂 Démarrage surveillance temps réel...');
+      
+      // Version simplifiée : utiliser directement les notifications sans Service Worker complexe
+      if ('Notification' in window) {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            console.log('✅ Permissions notifications accordées');
+            // Pas besoin de Service Worker pour les notifications basiques
+            trainServiceWorker = { active: true }; // Mock pour compatibilité
+          } else {
+            showNotification('🔒 Permissions notifications refusées', 'error');
+            return;
+          }
+        } catch (error) {
+          console.error('Erreur permissions:', error);
+          showNotification('❌ Erreur permissions notifications', 'error');
+          return;
+        }
+      } else {
+        showNotification('❌ Notifications non supportées', 'error');
+        return;
+      }
+
+      isMonitoringActive = true;
+      updateMonitoringButton();
+      
+      showNotification('🚂 Surveillance trains activée', 'success');
+      console.log('✅ Surveillance temps réel active');
+    }
+
+    // Arrêter la surveillance
+    function stopTrainMonitoring() {
+      if (!isMonitoringActive) return;
+      
+      console.log('⏹️ Arrêt surveillance temps réel...');
+      
+      isMonitoringActive = false;
+      updateMonitoringButton();
+      
+      showNotification('⏹️ Surveillance trains arrêtée', 'info');
+      console.log('⏹️ Surveillance temps réel arrêtée');
+    }
+
+    // Mettre à jour l'apparence du bouton de surveillance
+    function updateMonitoringButton() {
+      const button = document.getElementById('train-monitoring-toggle');
+      const dot = button.querySelector('div');
+      const pulseDot = button.querySelector('div:last-child');
+      
+      if (isMonitoringActive) {
+        // Point vert avec animation pulse
+        dot.className = 'w-3 h-3 bg-green-500 rounded-full shadow-md border-2 border-green-400/30';
+        pulseDot.className = 'absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-pulse opacity-40';
+        button.title = '🚂 Surveillance active - Cliquer pour arrêter';
+      } else {
+        // Point gris sans animation
+        dot.className = 'w-3 h-3 bg-gray-500 rounded-full shadow-md border-2 border-gray-400/30';
+        pulseDot.className = 'absolute inset-0 w-3 h-3 bg-gray-500 rounded-full opacity-20';
+        button.title = '🚂 Surveillance inactive - Cliquer pour démarrer';
+      }
+    }
+
+    // 🚂 Gestion du bouton de surveillance temps réel
+    const monitoringButton = document.getElementById('train-monitoring-toggle');
+    monitoringButton.addEventListener('click', async () => {
+      if (isMonitoringActive) {
+        stopTrainMonitoring();
+      } else {
+        await startTrainMonitoring();
+      }
+    });
+
+
+
+    // Rendu des sections météo
+    renderWeather(document.getElementById('wx-rouen'), CITY_A);
+    renderWeather(document.getElementById('wx-lehavre'), CITY_B);
+
+    // Rendu des sections trains
+    renderTrainBoard(document.getElementById('trains-havre'),
+      'Départs — ROUEN → LE HAVRE', 'rouen', { limit: '3' });
+
+    renderTrainBoard(document.getElementById('trains-rouen'),
+      'Départs — LE HAVRE → ROUEN', 'lehavre', { dest: 'rouen_all', limit: '3' });
+
+    // ========================================
+    // 🚫 GÉOLOCALISATION DÉSACTIVÉE
+    // Commenté car nécessite HTTPS (certificat SSL)
+    // Non compatible avec hébergement Hostinger sans SSL
+    // ========================================
+
+    // Détection intelligente de la ville la plus proche
+    /* DÉSACTIVÉ - Nécessite HTTPS
+    function detectNearestCity(lat, lon) {
+      const cities = [
+        {
+          name: "Rouen",
+          lat: 49.4431,
+          lon: 1.0993,
+          trainDirection: "lehavre_to_rouen",
+          weatherKey: "rouen"
+        },
+        {
+          name: "Le Havre",
+          lat: 49.4944,
+          lon: 0.1079,
+          trainDirection: "rouen_to_lehavre",
+          weatherKey: "lehavre"
+        }
+      ];
+
+      let nearest = cities[0];
+      let minDistance = calculateDistance(lat, lon, cities[0].lat, cities[0].lon);
+
+      for (const city of cities) {
+        const distance = calculateDistance(lat, lon, city.lat, city.lon);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearest = city;
+        }
+      }
+
+      // Si on est à plus de 50km, considérer comme "autre" (Paris, etc.)
+      if (minDistance > 50) {
+        return {
+          name: "Position actuelle",
+          lat,
+          lon,
+          trainDirection: "all",
+          weatherKey: "custom"
+        };
+      }
+
+      return nearest;
+    }
+
+    // Calcul de distance entre deux points GPS (formule haversine)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Rayon de la Terre en km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // Mise à jour de la météo avec highlight
+    function updateWeatherWithHighlight(city, temp, windSpeed, lat, lon) {
+      // Reset tous les highlights météo
+      document.querySelectorAll('.weather-city').forEach(el => {
+        el.classList.remove('bg-primary/20', 'border-primary/50', 'ring-2', 'ring-primary/30');
+        el.classList.add('bg-white/5', 'border-white/10');
+
+        // Supprimer les anciens indicateurs GPS s'ils existent
+        const gpsIndicator = el.querySelector('.gps-indicator');
+        if (gpsIndicator) {
+          gpsIndicator.remove();
+        }
+      });
+
+      // Surligner la ville dans le titre ET highlight de la carte météo correspondante
+      if (city.weatherKey && city.weatherKey !== 'custom') {
+        highlightDetectedCity(city.name);
+
+        // Highlight de la carte météo correspondante
+        const cityCard = document.querySelector(`[data-city="${city.weatherKey}"]`);
+        if (cityCard) {
+          cityCard.classList.remove('bg-white/5', 'border-white/10');
+          cityCard.classList.add('bg-primary/20', 'border-primary/50', 'ring-2', 'ring-primary/30');
+
+          // Scroll vers la carte météo highlight
+          cityCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else {
+        // Si position inconnue, on pourrait afficher autre chose mais gardons simple
+        // highlightDetectedCity(null); // Reset
+      }
+    }
+
+    // Highlight des trains pertinents selon la position
+    function highlightRelevantTrains(city) {
+      // Reset tous les highlights de trains
+      document.querySelectorAll('.train-direction').forEach(el => {
+        el.classList.remove('bg-primary/20', 'border-primary/50', 'ring-2', 'ring-primary/30');
+        el.classList.add('bg-white/5', 'border-white/10');
+      });
+
+      // Highlight selon la direction
+      let targetDirection = null;
+      if (city.trainDirection === 'rouen_to_lehavre') {
+        targetDirection = 'lehavre-rouen';
+      } else if (city.trainDirection === 'lehavre_to_rouen') {
+        targetDirection = 'rouen-lehavre';
+      }
+
+      if (targetDirection) {
+        const trainCard = document.querySelector(`[data-direction="${targetDirection}"]`);
+        if (trainCard) {
+          trainCard.classList.remove('bg-white/5', 'border-white/10');
+          trainCard.classList.add('bg-primary/20', 'border-primary/50', 'ring-2', 'ring-primary/30');
+
+          // Scroll vers la section trains
+          trainCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else if (city.trainDirection === 'all') {
+        // Si position inconnue, highlight les deux directions avec une couleur différente
+        document.querySelectorAll('.train-direction').forEach(el => {
+          el.classList.remove('bg-white/5', 'border-white/10');
+          el.classList.add('bg-accent/15', 'border-accent/40');
+        });
+      }
+    }
+
+    // Fonction de géolocalisation automatique
+    async function handleGeolocation() {
+      if (!navigator.geolocation) {
+        return; // Silencieux si pas de géolocalisation
+      }
+
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutes de cache
+          });
+        });
+
+        const { latitude, longitude } = position.coords;
+
+        // Détection intelligente de la ville la plus proche
+        const detectedCity = detectNearestCity(latitude, longitude);
+
+        // Récupérer les données météo pour cette position
+        const weatherResponse = await fetch(`/api/weather?lat=${latitude}&lon=${longitude}`);
+        const weatherData = await weatherResponse.json();
+
+        if (weatherData.current_weather) {
+          const temp = Math.round(weatherData.current_weather.temperature);
+          const windSpeed = Math.round(weatherData.current_weather.windspeed);
+
+          // Mettre à jour la météo avec highlight de la ville détectée
+          updateWeatherWithHighlight(detectedCity, temp, windSpeed, latitude, longitude);
+
+          // Mettre en surbrillance les trains selon la position
+          highlightRelevantTrains(detectedCity);
+
+          highlightDetectedCity(detectedCity.name);
+        } else {
+          throw new Error('Données météo indisponibles');
+        }
+
+      } catch (error) {
+        console.log('Géolocalisation non disponible ou refusée, utilisation par défaut');
+        // Silencieux - pas de notification d'erreur pour la géolocalisation automatique
+      }
+    }
+    */
+
+    // Initialiser les classes des villes
+    highlightDetectedCity(null); // Reset initial
+
+    // 🔔 Démarrer la surveillance des retards de trains
+    setTimeout(() => {
+      startDelayMonitoring();
+    }, 2000); // Délai pour laisser charger les données
+
+    // 🚂 Initialiser et démarrer automatiquement la surveillance temps réel
+    updateMonitoringButton();
+    registerTrainServiceWorker(); // Pré-enregistrement du Service Worker
+
+    // 🚀 Démarrer automatiquement la surveillance des trains
+    setTimeout(async () => {
+      console.log('🚂 Démarrage automatique de la surveillance trains...');
+      await startTrainMonitoring();
+    }, 1000);
+
+    // 🚫 GÉOLOCALISATION DÉSACTIVÉE - Nécessite HTTPS
+    // Commenté car incompatible avec Hostinger sans certificat SSL
+    /*
+    // Géolocalisation automatique au démarrage
+    if (navigator.geolocation) {
+      handleGeolocation();
+    }
+    */
+  });
+})();
+</script>
+</body>
+</html>

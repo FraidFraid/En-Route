@@ -1,0 +1,653 @@
+/* =========================
+   Minimal Moss Pro (UI/UX)
+   — lisible, pro, compact —
+   ========================= */
+
+/* Dark Mode (default) */
+:root,
+[data-theme="dark"] {
+    color-scheme: dark;
+    /* Couleurs de base - Palette pro moderne */
+    --bg-0: #0A0A0B;
+    --bg-1: #111113;
+    --layer: #1A1A1D;
+    --ink-1: #FFFFFF;
+    --ink-2: #E5E5E7;
+    --ink-3: #A1A1AA;
+    --primary: #3B82F6;
+    --primary-weak: #1E3A8A;
+    --bd: #2A2A2E;
+    --bd-soft: #36363A;
+
+    /* Accents sémantiques modernes */
+    --ok: #10B981;
+    --warn: #F59E0B;
+    --err: #EF4444;
+    --accent: #8B5CF6;
+
+    /* Effets */
+    --radius: 12px;
+    --r-sm: 8px;
+    --glass: rgba(26, 26, 29, 0.8);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* Background gradients */
+    --bg-gradient-1: rgba(59, 130, 246, 0.08);
+    --bg-gradient-2: rgba(139, 92, 246, 0.06);
+}
+
+/* Light Mode */
+[data-theme="light"] {
+    color-scheme: light;
+    --bg-0: #F8FAFC;
+    --bg-1: #FFFFFF;
+    --layer: #F1F5F9;
+    --ink-1: #0F172A;
+    --ink-2: #334155;
+    --ink-3: #64748B;
+    --primary: #2563EB;
+    --primary-weak: #DBEAFE;
+    --bd: #E2E8F0;
+    --bd-soft: #CBD5E1;
+
+    --ok: #059669;
+    --warn: #D97706;
+    --err: #DC2626;
+    --accent: #7C3AED;
+
+    --glass: rgba(255, 255, 255, 0.85);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    --bg-gradient-1: rgba(59, 130, 246, 0.05);
+    --bg-gradient-2: rgba(139, 92, 246, 0.04);
+}
+
+/* Layout & typo */
+html,
+body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    color: var(--ink-1);
+    background:
+        radial-gradient(1200px 600px at 20% 10%, var(--bg-gradient-1), transparent 70%),
+        radial-gradient(800px 400px at 80% 90%, var(--bg-gradient-2), transparent 65%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-0) 100%);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: -apple-system, BlinkMacSystemFont, Inter, Segoe UI, system-ui, sans-serif;
+    letter-spacing: 0.025em;
+    transition: background 0.3s ease, color 0.3s ease;
+
+    /* Respect de l'encoche iPhone (Notch) + marge sécurité */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+}
+
+h1 {
+    font-weight: 800
+}
+
+h2 {
+    color: var(--ink-2)
+}
+
+#now {
+    color: var(--ink-3)
+}
+
+/* Cartes modernes avec effet glassmorphism */
+.card {
+    background: var(--glass);
+    border: 1px solid var(--bd);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+}
+
+/* Boutons modernes et épurés */
+.btn {
+    background: var(--layer);
+    color: var(--ink-2);
+    border: 1px solid var(--bd);
+    border-radius: var(--r-sm);
+    padding: .375rem .5rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    transition: all .15s ease;
+}
+
+.btn:hover {
+    background: var(--bd);
+    color: var(--ink-1);
+}
+
+.btn:active {
+    transform: translateY(0)
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px
+}
+
+/* Statuts modernes */
+.text-emerald-400 {
+    color: var(--ok) !important;
+    font-weight: 600
+}
+
+.text-amber-400 {
+    color: var(--warn) !important;
+    font-weight: 600
+}
+
+.text-red-400 {
+    color: var(--err) !important;
+    font-weight: 600
+}
+
+/* Séparateurs / mini-cards */
+.bg-zinc-900 {
+    background: rgba(26, 26, 29, .6) !important;
+    border: 1px solid var(--bd) !important
+}
+
+.divide-zinc-800>*+* {
+    border-top: 1px solid var(--bd-soft) !important
+}
+
+/* ————————— Météo ————————— */
+.grid-meteo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px
+}
+
+@media (max-width:360px) {
+    .grid-meteo {
+        gap: 10px
+    }
+}
+
+#wx-rouen,
+#wx-lehavre {
+    border-color: var(--bd);
+    background: var(--glass);
+}
+
+#wx-rouen .text-zinc-400,
+#wx-lehavre .text-zinc-400 {
+    color: var(--ink-3) !important
+}
+
+#wx-rouen .temp,
+#wx-lehavre .temp {
+    font-variant-numeric: tabular-nums
+}
+
+[data-role="wx-icon"] {
+    display: inline-grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--r-sm);
+    color: var(--ink-1);
+}
+
+/* ————————— Trains ————————— */
+#trains-havre,
+#trains-rouen {
+    border-color: var(--bd);
+    background: var(--glass);
+}
+
+.rows .mono {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .2px
+}
+
+.rows .text-blue-400 {
+    color: var(--primary) !important
+}
+
+/* ————————— Géolocalisation Villes ————————— */
+.city-detected {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: var(--primary) !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    border-color: var(--primary) !important;
+}
+
+.city-normal {
+    background: var(--layer);
+    color: var(--ink-2);
+    border: 1px solid var(--bd);
+}
+
+.city-toggle {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.city-toggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.city-toggle:active {
+    transform: translateY(0);
+}
+
+/* ————————— Indicateur de fraîcheur ————————— */
+.freshness-indicator {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-weight: 600;
+}
+
+/* ————————— Animation Fade-in pour Géolocalisation ————————— */
+.fade-in {
+    animation: fadeInSmooth 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInSmooth {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Adaptation automatique : quand une carte est cachée, l'autre prend toute la largeur */
+#weather-section:has(.weather-city[style*="display: none"]) .weather-city:not([style*="display: none"]),
+#trains-section:has(.train-direction[style*="display: none"]) .train-direction:not([style*="display: none"]) {
+    grid-column: 1 / -1;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ————————— Theme Toggle Button ————————— */
+.theme-toggle {
+    background: var(--layer);
+    border: 1px solid var(--bd);
+    border-radius: var(--r-sm);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    background: var(--bd);
+    transform: scale(1.05);
+}
+
+.theme-toggle svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--ink-2);
+    transition: color 0.2s ease;
+}
+
+.theme-toggle:hover svg {
+    color: var(--ink-1);
+}
+
+/* Light mode specific overrides */
+[data-theme="light"] .text-zinc-100 {
+    color: var(--ink-1) !important;
+}
+
+[data-theme="light"] .text-zinc-300 {
+    color: var(--ink-2) !important;
+}
+
+[data-theme="light"] .text-zinc-400 {
+    color: var(--ink-3) !important;
+}
+
+[data-theme="light"] .text-zinc-500 {
+    color: var(--ink-3) !important;
+}
+
+[data-theme="light"] .bg-zinc-800\/50 {
+    background: var(--layer) !important;
+}
+
+[data-theme="light"] .hover\:bg-zinc-700\/50:hover {
+    background: var(--bd) !important;
+}
+
+[data-theme="light"] .border-zinc-700\/50 {
+    border-color: var(--bd) !important;
+}
+
+[data-theme="light"] .border-zinc-800 {
+    border-color: var(--bd) !important;
+}
+
+[data-theme="light"] .divide-zinc-800>*+* {
+    border-color: var(--bd-soft) !important;
+}
+
+[data-theme="light"] .bg-blue-600 {
+    background: var(--primary) !important;
+}
+
+/* Layout desktop optimisé - Compact et bien espacé */
+@media (min-width: 768px) {
+
+    /* Cartes plus compactes avec hauteur réduite */
+    .card {
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Padding réduit pour les cartes */
+    .card {
+        padding: 0.875rem !important;
+        /* 14px au lieu de 16px */
+    }
+}
+
+/* Optimisations générales pour un affichage plus compact */
+.card {
+    padding: 0.75rem;
+    /* 12px sur mobile, overridé sur desktop */
+}
+
+/* Espacement entre les sections principales */
+main>section+section {
+    margin-top: 1rem;
+}
+
+/* Réduire les marges internes des sections météo */
+.grid-meteo {
+    gap: 0.75rem;
+}
+
+/* Micro-animations sobres */
+@media (prefers-reduced-motion:no-preference) {
+    .card {
+        animation: fadeIn .22s ease both
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: .0;
+            transform: translateY(3px)
+        }
+
+        to {
+            opacity: 1;
+            transform: none
+        }
+    }
+
+    /* Animation de rotation pour les loaders */
+    .animate-spin {
+        animation: spin 1s linear infinite
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg)
+        }
+
+        to {
+            transform: rotate(360deg)
+        }
+    }
+
+    /* Animations pour notifications */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%)
+        }
+
+        to {
+            opacity: 1;
+            transform: none
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            opacity: 1;
+            transform: none
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(100%)
+        }
+    }
+}
+
+/* ————————— Skeleton Loading ————————— */
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--layer) 25%,
+            var(--bd) 50%,
+            var(--layer) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--r-sm);
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-text {
+    height: 1em;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text-sm {
+    height: 0.75em;
+    width: 60%;
+}
+
+.skeleton-circle {
+    border-radius: 50%;
+}
+
+.skeleton-train-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+}
+
+.skeleton-train-row .skeleton-time {
+    width: 3.5rem;
+    height: 1.5rem;
+}
+
+.skeleton-train-row .skeleton-dest {
+    flex: 1;
+    height: 1rem;
+}
+
+.skeleton-train-row .skeleton-status {
+    width: 5rem;
+    height: 0.875rem;
+}
+
+.skeleton-weather {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-weather .skeleton-temp {
+    width: 4rem;
+    height: 2rem;
+}
+
+.skeleton-weather .skeleton-cond {
+    width: 6rem;
+    height: 0.875rem;
+}
+
+/* ————————— Prochain Train Highlight ————————— */
+.train-row {
+    position: relative;
+    transition: all 0.2s ease;
+    border-radius: var(--r-sm);
+    margin: 0.25rem -0.5rem;
+    padding: 0.75rem 0.5rem !important;
+}
+
+.train-row.next-train {
+    background: linear-gradient(135deg, var(--primary-weak), transparent 60%);
+    border-left: 3px solid var(--primary);
+}
+
+/* Badge PROCHAIN retiré - déjà affiché dans le statut */
+
+/* ————————— Micro-interactions Hover ————————— */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow), 0 12px 40px rgba(0, 0, 0, 0.3);
+    border-color: var(--bd-soft);
+}
+
+.train-row:hover {
+    background: var(--layer);
+}
+
+.train-row.next-train:hover {
+    background: linear-gradient(135deg, var(--primary-weak), var(--layer) 60%);
+}
+
+/* Hover sur les boutons refresh */
+.btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:hover {
+    transform: translateY(-1px) scale(1.02);
+}
+
+.btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Hover sur les stats météo */
+.grid.grid-cols-3>div {
+    transition: all 0.15s ease;
+}
+
+.grid.grid-cols-3>div:hover {
+    background: var(--bd);
+    transform: scale(1.02);
+}
+
+/* ————————— Typographie Horaires Améliorée ————————— */
+.train-time {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+}
+
+.train-time-delayed {
+    color: var(--warn);
+    text-decoration: line-through;
+    text-decoration-color: var(--warn);
+    font-size: 0.875rem;
+    opacity: 0.7;
+}
+
+.train-time-expected {
+    color: var(--warn);
+    font-weight: 700;
+}
+
+.train-time-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+}
+
+/* Amélioration des statuts */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-ontime {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-delayed {
+    background: rgba(245, 158, 11, 0.2);
+    color: #FBBF24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-cancelled {
+    background: rgba(239, 68, 68, 0.2);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Badge spécial pour le prochain train */
+.status-next {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60A5FA;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Pulse animation pour le prochain train */
+@keyframes pulse-border {
+
+    0%,
+    100% {
+        border-left-color: var(--primary);
+    }
+
+    50% {
+        border-left-color: var(--accent);
+    }
+}
+
+.train-row.next-train {
+    animation: pulse-border 2s ease-in-out infinite;
+}

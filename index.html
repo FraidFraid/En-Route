@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rouen ⇄ Le Havre – LIVE</title>
+  
+  <!-- Icônes pour iOS et Progressive Web App -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Métadonnées pour iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NIinie Live">
+  <meta name="theme-color" content="#000000">
+  <meta name="msapplication-TileColor" content="#000000">
+  
+  <!-- Note: Tailwind CDN is kept for simplicity, though best practice would be to use PostCSS/Tailwind via Vite -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="text-zinc-100 antialiased">
+  <div class="mx-auto max-w-5xl px-4 py-6">
+    <header class="mb-3">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold tracking-tight">EN ROUTE</h1>
+            <!-- 🚂 Surveillance temps réel - Indicateur discret -->
+            <button id="train-monitoring-toggle" class="relative transition-all duration-200 hover:scale-110" title="Surveillance temps réel">
+              <div class="w-2.5 h-2.5 bg-green-500 rounded-full shadow-md border-2 border-green-400/30"></div>
+              <div class="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse opacity-40"></div>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <p id="now" class="text-xs text-zinc-400 flex items-center gap-1.5 font-mono">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+              <span>—</span>
+            </p>
+            <div class="flex items-center gap-1">
+              <!-- Sky Theme Toggle -->
+              <button id="sky-theme-toggle" class="theme-toggle" title="Mode Ciel Dynamique">
+                <i data-lucide="palette" class=""></i>
+              </button>
+              <!-- Theme Toggle Button -->
+              <button id="theme-toggle" class="theme-toggle" title="Changer de thème">
+                <i data-lucide="sun" class="theme-icon-light hidden"></i>
+                <i data-lucide="moon" class="theme-icon-dark"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-zinc-700/50"></div>
+        <div class="flex items-center justify-between py-1">
+          <h2 class="text-base text-zinc-300 flex items-center gap-3 flex-1 justify-center">
+            <button id="city-rouen" class="city-toggle px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer bg-zinc-800/50 hover:bg-zinc-700/50 border border-transparent">
+              <i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i>Rouen
+            </button>
+            <span class="text-zinc-500 text-lg">⇄</span>
+            <button id="city-lehavre" class="city-toggle px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer bg-zinc-800/50 hover:bg-zinc-700/50 border border-transparent">
+              <i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i>Le Havre
+            </button>
+          </h2>
+          <button id="view-mode-toggle" class="theme-toggle ml-2" title="Basculer vue complète">
+            <i data-lucide="layout-grid" class="view-icon-single"></i>
+            <i data-lucide="layout-list" class="view-icon-full hidden"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="space-y-3">
+      <!-- Météo (grille adaptative) -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-3" id="weather-section">
+        <div id="wx-rouen" class="card weather-city" data-city="rouen"></div>
+        <div id="wx-lehavre" class="card weather-city" data-city="lehavre"></div>
+      </section>
+
+      <!-- Trains (grille adaptative) -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-3" id="trains-section">
+        <div id="trains-havre" class="card train-direction" data-direction="rouen-lehavre"></div>
+        <div id="trains-rouen" class="card train-direction" data-direction="lehavre-rouen"></div>
+      </section>
+    </main>
+    <footer class="mt-8 text-center text-[10px] text-zinc-600 font-mono">
+      2026 - Fraid - En Route v 1.1
+    </footer>
+  </div>
+  
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

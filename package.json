@@ -1,0 +1,31 @@
+{
+    "name": "niinie-app",
+    "version": "1.0.0",
+    "main": "server.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "vite",
+        "start": "node server.js",
+        "build": "vite build",
+        "sync": "npx cap sync"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+        "@capacitor/cli": "^8.0.0",
+        "@capacitor/core": "^8.0.0",
+        "@capacitor/geolocation": "^8.0.0",
+        "@capacitor/ios": "^8.0.0",
+        "cors": "^2.8.5",
+        "express": "^5.1.0",
+        "lucide": "^0.556.0",
+        "node-fetch": "^3.3.2",
+        "vite": "^7.2.7"
+    },
+    "description": "",
+    "devDependencies": {
+        "@capacitor/assets": "^3.0.5"
+    }
+}

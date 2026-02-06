@@ -1,15 +1,23 @@
 /**
  * Test script - Scrape les départs SNCF en temps réel (avec voies)
- * via l'API interne de garesetconnexions.sncf avec Playwright
+ * via l'API interne de garesetconnexions.sncf avec Playwright + Stealth
+ *
+ * Setup:
+ *   cd /tmp/sncf-test
+ *   npm init -y
+ *   npm install playwright playwright-extra puppeteer-extra-plugin-stealth
+ *   npx playwright install chromium
  *
  * Usage:
- *   npm install playwright
- *   npx playwright install chromium
  *   node test-sncf-scraper.mjs
  *   node test-sncf-scraper.mjs 0087411017 rouen-rive-droite
  *   node test-sncf-scraper.mjs 0087547000 paris-saint-lazare
  */
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+// Activer le plugin stealth (masque les traces de headless)
+chromium.use(StealthPlugin());
 
 // Defaults : Rouen Rive Droite
 const uicCode = process.argv[2] || '0087411017';
@@ -25,6 +33,9 @@ async function getDepartures(uicCode, stationSlug) {
 
   try {
     const context = await browser.newContext({
+      locale: 'fr-FR',
+      timezoneId: 'Europe/Paris',
+      viewport: { width: 1920, height: 1080 },
       userAgent:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
     });
@@ -35,49 +46,59 @@ async function getDepartures(uicCode, stationSlug) {
 
     page.on('response', async (response) => {
       if (
-        response.url().includes(`/schedule-table/Departures/${uicCode}`) &&
+        response.url().includes('/schedule-table/Departures/') &&
         response.status() === 200
       ) {
         try {
-          departureData = await response.json();
+          const json = await response.json();
+          if (Array.isArray(json)) {
+            departureData = json;
+            console.log(`-> API interceptee ! (${json.length} trains)`);
+          }
         } catch (_) {}
       }
     });
 
-    // 1) Naviguer vers la page de la gare (génère les cookies DataDome)
+    // 1) Naviguer vers la page de la gare
     console.log('-> Navigation vers la page de la gare...');
     await page.goto(
       `https://www.garesetconnexions.sncf/fr/gares-services/${stationSlug}`,
-      { waitUntil: 'networkidle', timeout: 30000 }
+      { waitUntil: 'domcontentloaded', timeout: 30000 }
     );
+    console.log('-> Page chargee, attente des donnees...');
 
-    // 2) Si l'API n'a pas été appelée automatiquement, attendre un peu
-    if (!departureData) {
-      console.log('-> Attente du chargement API...');
-      await page.waitForTimeout(5000);
+    // 2) Attendre que les données arrivent (max 15s)
+    for (let i = 0; i < 15 && !departureData; i++) {
+      await page.waitForTimeout(1000);
     }
 
-    // 3) Fallback : fetch depuis le contexte navigateur (cookies DataDome déjà posés)
+    // 3) Fallback : fetch depuis le contexte navigateur
     if (!departureData) {
-      console.log('-> Fetch direct depuis le contexte navigateur...');
-      departureData = await page.evaluate(async (uic) => {
-        const resp = await fetch(`/schedule-table/Departures/${uic}`, {
-          headers: { Accept: 'application/json' },
-        });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        return resp.json();
-      }, uicCode);
+      console.log('-> Tentative fetch depuis le contexte navigateur...');
+      try {
+        departureData = await page.evaluate(async (uic) => {
+          const resp = await fetch(`/schedule-table/Departures/${uic}`, {
+            headers: { Accept: 'application/json' },
+          });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          return resp.json();
+        }, uicCode);
+      } catch (e) {
+        console.log(`-> Fetch echoue: ${e.message}`);
+      }
     }
 
-    if (!departureData || !Array.isArray(departureData) || departureData.length === 0) {
-      console.log('Aucune donnee recuperee.');
+    // 4) Dernier fallback : lire les données depuis le DOM
+    if (!departureData) {
+      console.log('-> Tentative extraction depuis le DOM...');
       await page.screenshot({ path: 'debug-sncf.png' });
-      console.log('-> Screenshot de debug sauve dans debug-sncf.png');
+      console.log('-> Screenshot sauve dans debug-sncf.png');
+      console.log('-> URL actuelle:', page.url());
       return null;
     }
 
     // Affichage
-    console.log(`${departureData.length} trains trouves !\n`);
+    console.log(`\n${departureData.length} trains trouves !\n`);
     const sep = '-'.repeat(95);
     console.log(sep);
     console.log(

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup - Perturbations En-Route</title>
+<style>
+  :root, [data-theme="dark"] {
+    color-scheme: dark;
+    --bg-0: #0A0A0B; --bg-1: #111113; --layer: #1A1A1D;
+    --ink-1: #FFFFFF; --ink-2: #E5E5E7; --ink-3: #A1A1AA;
+    --primary: #3B82F6; --primary-weak: #1E3A8A; --bd: #2A2A2E; --bd-soft: #36363A;
+    --ok: #10B981; --warn: #F59E0B; --err: #EF4444; --accent: #8B5CF6;
+    --radius: 12px; --r-sm: 8px;
+    --glass: rgba(26, 26, 29, 0.8);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, Inter, Segoe UI, system-ui, sans-serif;
+    background: radial-gradient(1200px 600px at 20% 10%, rgba(59,130,246,0.08), transparent 70%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-0));
+    color: var(--ink-1); min-height: 100vh; padding: 1.5rem;
+  }
+  .card {
+    background: var(--glass); border: 1px solid var(--bd); border-radius: var(--radius);
+    box-shadow: var(--shadow); backdrop-filter: blur(16px); padding: 0.875rem;
+    max-width: 420px; margin: 0 auto;
+  }
+  .card-header { display: flex; align-items: center; justify-content: between; margin-bottom: 0.75rem; gap: 0.5rem; }
+  .card-header svg { width: 16px; height: 16px; color: var(--ink-2); }
+  .card-title { font-size: 0.75rem; color: var(--ink-2); font-weight: 700; letter-spacing: 0.05em; }
+  .countdown { font-size: 0.75rem; font-family: 'SF Mono', monospace; color: var(--primary); font-weight: 700; margin-left: auto; }
+
+  .train-row {
+    position: relative; display: flex; align-items: center; gap: 0.75rem;
+    border-radius: var(--r-sm); padding: 0.75rem 0.5rem; margin: 0.25rem -0.5rem;
+    cursor: default; transition: all 0.2s ease;
+  }
+  .train-row:hover { background: var(--layer); }
+  .train-row.next-train {
+    background: linear-gradient(135deg, var(--primary-weak), transparent 60%);
+    border-left: 3px solid var(--primary);
+  }
+  .train-row.next-train:hover {
+    background: linear-gradient(135deg, var(--primary-weak), var(--layer) 60%);
+  }
+  .train-row + .train-row { border-top: 1px solid var(--bd-soft); }
+
+  /* Clickable delayed rows */
+  .train-row.clickable { cursor: pointer; }
+  .train-row.clickable:hover { background: rgba(245, 158, 11, 0.08); }
+  .train-row.clickable.next-train:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), var(--layer) 60%);
+  }
+
+  .train-time {
+    font-family: 'SF Mono', 'Fira Code', monospace; font-variant-numeric: tabular-nums;
+    font-weight: 600; font-size: 1.25rem; color: var(--ink-1);
+  }
+  .train-time-wrapper { display: flex; flex-direction: column; gap: 0.125rem; }
+  .train-time-delayed {
+    color: var(--warn); text-decoration: line-through; font-size: 0.875rem; opacity: 0.7;
+  }
+  .train-time-expected { color: var(--warn); font-weight: 700; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-ontime { background: rgba(16,185,129,0.2); color: #34D399; border: 1px solid rgba(16,185,129,0.3); }
+  .status-delayed { background: rgba(245,158,11,0.2); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+  .status-cancelled { background: rgba(239,68,68,0.2); color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
+
+  .platform-badge {
+    padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;
+    font-weight: 500; background: var(--primary); color: white;
+  }
+  .train-number { font-size: 0.75rem; color: var(--ink-3); white-space: nowrap; }
+  .dest { font-size: 0.875rem; font-weight: 500; }
+
+  /* Tap hint on delayed rows */
+  .tap-hint {
+    font-size: 10px; color: var(--warn); opacity: 0.6; margin-top: 2px;
+  }
+
+  /* ========== POPUP / MODAL ========== */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--bg-1); border: 1px solid var(--bd); border-radius: var(--radius);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5); max-width: 400px; width: 100%;
+    animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .modal-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--bd);
+    background: rgba(245, 158, 11, 0.08);
+  }
+  .modal-header .icon-circle {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.3);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  .modal-header-text { flex: 1; }
+  .modal-header-title { font-weight: 700; font-size: 1rem; color: var(--ink-1); }
+  .modal-header-sub { font-size: 0.8rem; color: var(--warn); font-weight: 600; margin-top: 2px; }
+
+  .modal-close {
+    background: var(--layer); border: 1px solid var(--bd); border-radius: 50%;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--ink-3); font-size: 1.1rem; transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--bd); color: var(--ink-1); }
+
+  .modal-body { padding: 1.25rem; }
+
+  .info-row {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.6rem 0; font-size: 0.85rem;
+  }
+  .info-row + .info-row { border-top: 1px solid var(--bd-soft); }
+  .info-label { color: var(--ink-3); min-width: 70px; font-size: 0.75rem; padding-top: 2px; }
+  .info-value { color: var(--ink-1); flex: 1; }
+
+  .disruption-box {
+    background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: var(--r-sm); padding: 0.75rem; margin-top: 0.75rem;
+  }
+  .disruption-box .label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--warn); font-weight: 700; margin-bottom: 0.4rem;
+  }
+  .disruption-box .message { font-size: 0.85rem; color: var(--ink-2); line-height: 1.5; }
+
+  .modal-footer {
+    padding: 0.75rem 1.25rem; border-top: 1px solid var(--bd);
+    display: flex; gap: 0.5rem;
+  }
+  .btn-detail {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: var(--primary); color: white; border: none; border-radius: var(--r-sm);
+    padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; text-decoration: none; flex: 1; justify-content: center;
+  }
+  .btn-detail:hover { filter: brightness(1.15); }
+  .btn-close-modal {
+    background: var(--layer); color: var(--ink-2); border: 1px solid var(--bd);
+    border-radius: var(--r-sm); padding: 0.5rem 1rem; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-close-modal:hover { background: var(--bd); color: var(--ink-1); }
+
+  .legend { text-align: center; margin-top: 1.5rem; font-size: 0.7rem; color: var(--ink-3); }
+</style>
+</head>
+<body>
+
+<!-- ===== CARTE TRAINS ===== -->
+<div class="card">
+  <div class="card-header">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+    <span class="card-title">de ROUEN vers LE HAVRE</span>
+    <span class="countdown">Prochain: 03mn</span>
+  </div>
+
+  <!-- Train 1 : En retard (CLIQUABLE) -->
+  <div class="train-row next-train clickable" onclick="openModal('modal-1')">
+    <div style="width:4rem">
+      <div class="train-time-wrapper">
+        <span class="train-time-delayed">15:07</span>
+        <span class="train-time train-time-expected">15:12</span>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div class="dest">Yvetot</div>
+      <div class="tap-hint">Tap pour voir la perturbation</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <span class="train-number">N° 850618</span>
+      <span class="platform-badge">Voie 2</span>
+    </div>
+    <span class="status-badge status-delayed">Retard +5 min</span>
+  </div>
+
+  <!-- Train 2 : A l'heure (non cliquable) -->
+  <div class="train-row">
+    <div style="width:4rem">
+      <span class="train-time">16:00</span>
+    </div>
+    <div style="flex:1">
+      <div class="dest">Le Havre</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <span class="train-number">N° 3119</span>
+    </div>
+    <span class="status-badge status-ontime">A l'heure</span>
+  </div>
+
+  <!-- Train 3 : Gros retard (CLIQUABLE) -->
+  <div class="train-row clickable" onclick="openModal('modal-2')">
+    <div style="width:4rem">
+      <div class="train-time-wrapper">
+        <span class="train-time-delayed">16:43</span>
+        <span class="train-time train-time-expected">17:03</span>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div class="dest">Le Havre</div>
+      <div class="tap-hint">Tap pour voir la perturbation</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <span class="train-number">N° 3121</span>
+    </div>
+    <span class="status-badge status-delayed">Retard +20 min</span>
+  </div>
+
+</div>
+
+<div class="legend">Mockup En-Route — Clique sur les lignes en retard (orange)</div>
+
+<!-- ===== POPUP TRAIN 1 (retard +5 min) ===== -->
+<div class="modal-overlay" id="modal-1" onclick="closeModal(event, 'modal-1')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="icon-circle">&#9888;</div>
+      <div class="modal-header-text">
+        <div class="modal-header-title">Train TER N°850618</div>
+        <div class="modal-header-sub">Retard +5 min &middot; Voie 2</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(event, 'modal-1')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-row">
+        <span class="info-label">Trajet</span>
+        <span class="info-value">Elbeuf - Saint-Aubin &rarr; Yvetot</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Depart</span>
+        <span class="info-value"><s style="color:var(--ink-3)">15:07</s> &nbsp;<strong style="color:var(--warn)">15:12</strong></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Voie</span>
+        <span class="info-value"><span class="platform-badge">Voie 2</span></span>
+      </div>
+      <div class="disruption-box">
+        <div class="label">Perturbation</div>
+        <div class="message">Le train a ete mis a disposition tardivement a la suite du retard sur un trajet precedent.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-close-modal" onclick="closeModal(event, 'modal-1')">Fermer</button>
+      <a href="https://www.sncf-voyageurs.com/fr/voyagez-avec-nous/horaires-et-itineraires/recherche-de-train/detail-train/?numeroCirculation=850618&dateCirculation=2026-02-06&destinationCode=87411017" target="_blank" class="btn-detail">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Details SNCF
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== POPUP TRAIN 2 (retard +20 min) ===== -->
+<div class="modal-overlay" id="modal-2" onclick="closeModal(event, 'modal-2')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="icon-circle">&#9888;</div>
+      <div class="modal-header-text">
+        <div class="modal-header-title">Train TER N°3121</div>
+        <div class="modal-header-sub">Retard +20 min</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(event, 'modal-2')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-row">
+        <span class="info-label">Trajet</span>
+        <span class="info-value">Paris Saint-Lazare &rarr; Le Havre</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Depart</span>
+        <span class="info-value"><s style="color:var(--ink-3)">16:43</s> &nbsp;<strong style="color:var(--warn)">17:03</strong></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Voie</span>
+        <span class="info-value" style="color:var(--ink-3)">Non assignee</span>
+      </div>
+      <div class="disruption-box">
+        <div class="label">Perturbation</div>
+        <div class="message">Circulation interrompue entre Mantes-la-Jolie et Rouen suite a un derangement d'installations en gare de Vernon. Reprise estimee a 17h00.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-close-modal" onclick="closeModal(event, 'modal-2')">Fermer</button>
+      <a href="#" class="btn-detail">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Details SNCF
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+function closeModal(event, id) {
+  if (event) event.stopPropagation();
+  document.getElementById(id).classList.remove('active');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+</script>
+
+</body>
+</html>

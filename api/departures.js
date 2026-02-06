@@ -123,6 +123,20 @@ async function fetchGaresEtConnexions(station, dest, uicCode) {
 
             const platform = train.platform?.track || '';
 
+            // Extraire le message de perturbation
+            const disruptions = [];
+            if (Array.isArray(train.shortTermInformations)) {
+                for (const info of train.shortTermInformations) {
+                    if (info.text || info.message || info.label) {
+                        disruptions.push(info.text || info.message || info.label);
+                    }
+                }
+            }
+            // Message depuis le status de modification
+            if (train.statusModification?.text) {
+                disruptions.push(train.statusModification.text);
+            }
+
             rows.push({
                 number: train.trainNumber || '',
                 to: train.traffic?.destination || '',
@@ -135,7 +149,9 @@ async function fetchGaresEtConnexions(station, dest, uicCode) {
                 ts: actualTs,
                 horaire_double_html: horaireHtml,
                 time: hReelle,
-                trainType: train.trainType || "TER"
+                trainType: train.trainType || "TER",
+                detailUrl: train.TrafficDetailsUrl || '',
+                disruption: disruptions.join(' — ') || ''
             });
         }
 

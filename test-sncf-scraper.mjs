@@ -1,34 +1,26 @@
 /**
  * Test script - Scrape les départs SNCF en temps réel (avec voies)
- * via l'API interne de garesetconnexions.sncf avec Playwright + Stealth
+ * via l'API interne de garesetconnexions.sncf
  *
  * Setup:
- *   cd /tmp/sncf-test
- *   npm init -y
- *   npm install playwright playwright-extra puppeteer-extra-plugin-stealth
- *   npx playwright install chromium
- *
- * Usage:
+ *   cd /tmp/sncf-test && npm init -y
+ *   npm install playwright
  *   node test-sncf-scraper.mjs
- *   node test-sncf-scraper.mjs 0087411017 rouen-rive-droite
  *   node test-sncf-scraper.mjs 0087547000 paris-saint-lazare
  */
-import { chromium } from 'playwright-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { chromium } from 'playwright';
 
-// Activer le plugin stealth (masque les traces de headless)
-chromium.use(StealthPlugin());
-
-// Defaults : Rouen Rive Droite
 const uicCode = process.argv[2] || '0087411017';
 const stationSlug = process.argv[3] || 'rouen-rive-droite';
 
 async function getDepartures(uicCode, stationSlug) {
   console.log(`\nRecuperation des departs pour ${stationSlug} (UIC: ${uicCode})...\n`);
 
+  // Utiliser le vrai Chrome installe sur la machine (pas le Chromium Playwright)
   const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    channel: 'chrome',
+    headless: false,
+    args: ['--window-size=800,600'],
   });
 
   try {
@@ -36,12 +28,9 @@ async function getDepartures(uicCode, stationSlug) {
       locale: 'fr-FR',
       timezoneId: 'Europe/Paris',
       viewport: { width: 1920, height: 1080 },
-      userAgent:
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
     });
     const page = await context.newPage();
 
-    // Capturer la réponse API au passage
     let departureData = null;
 
     page.on('response', async (response) => {
@@ -59,41 +48,38 @@ async function getDepartures(uicCode, stationSlug) {
       }
     });
 
-    // 1) Naviguer vers la page de la gare
-    console.log('-> Navigation vers la page de la gare...');
+    console.log('-> Ouverture de Chrome...');
     await page.goto(
       `https://www.garesetconnexions.sncf/fr/gares-services/${stationSlug}`,
       { waitUntil: 'domcontentloaded', timeout: 30000 }
     );
     console.log('-> Page chargee, attente des donnees...');
 
-    // 2) Attendre que les données arrivent (max 15s)
-    for (let i = 0; i < 15 && !departureData; i++) {
+    // Attendre que l'API reponde (max 20s)
+    for (let i = 0; i < 20 && !departureData; i++) {
       await page.waitForTimeout(1000);
+      if (i % 5 === 4) console.log(`-> Toujours en attente... (${i + 1}s)`);
     }
 
-    // 3) Fallback : fetch depuis le contexte navigateur
     if (!departureData) {
-      console.log('-> Tentative fetch depuis le contexte navigateur...');
+      console.log('-> Aucune interception, tentative fetch...');
       try {
         departureData = await page.evaluate(async (uic) => {
-          const resp = await fetch(`/schedule-table/Departures/${uic}`, {
+          const r = await fetch(`/schedule-table/Departures/${uic}`, {
             headers: { Accept: 'application/json' },
           });
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          return resp.json();
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
         }, uicCode);
       } catch (e) {
         console.log(`-> Fetch echoue: ${e.message}`);
       }
     }
 
-    // 4) Dernier fallback : lire les données depuis le DOM
-    if (!departureData) {
-      console.log('-> Tentative extraction depuis le DOM...');
+    if (!departureData || !Array.isArray(departureData) || !departureData.length) {
       await page.screenshot({ path: 'debug-sncf.png' });
-      console.log('-> Screenshot sauve dans debug-sncf.png');
-      console.log('-> URL actuelle:', page.url());
+      console.log('-> Echec. Screenshot sauve dans debug-sncf.png');
+      console.log('-> URL:', page.url());
       return null;
     }
 
@@ -112,22 +98,21 @@ async function getDepartures(uicCode, stationSlug) {
     );
     console.log(sep);
 
-    for (const train of departureData) {
+    for (const t of departureData) {
       const fmt = (iso) =>
         new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      const track = train.platform?.track || '-';
-      const delay = train.informationStatus?.delay;
-      const status = train.informationStatus?.trainStatus || '';
-      const statusStr = delay ? `${status} (+${delay}min)` : status;
+      const track = t.platform?.track || '-';
+      const delay = t.informationStatus?.delay;
+      const status = t.informationStatus?.trainStatus || '';
 
       console.log(
-        fmt(train.scheduledTime).padEnd(8),
-        fmt(train.actualTime).padEnd(8),
-        train.trainNumber.padEnd(12),
-        train.trainType.padEnd(12),
+        fmt(t.scheduledTime).padEnd(8),
+        fmt(t.actualTime).padEnd(8),
+        t.trainNumber.padEnd(12),
+        t.trainType.padEnd(12),
         track.padEnd(6),
-        train.traffic.destination.substring(0, 24).padEnd(25),
-        statusStr
+        t.traffic.destination.substring(0, 24).padEnd(25),
+        delay ? `${status} (+${delay}min)` : status
       );
     }
     console.log(sep);
@@ -141,8 +126,8 @@ async function getDepartures(uicCode, stationSlug) {
 getDepartures(uicCode, stationSlug)
   .then((data) => {
     if (data) {
-      const withTrack = data.filter((t) => t.platform?.track);
-      console.log(`\n${withTrack.length}/${data.length} trains avec voie assignee.`);
+      const n = data.filter((t) => t.platform?.track).length;
+      console.log(`\n${n}/${data.length} trains avec voie assignee.`);
     }
     process.exit(0);
   })

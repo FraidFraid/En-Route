@@ -460,7 +460,10 @@ document.addEventListener('DOMContentLoaded', () => {
         lastNotifiedDelays.add(notificationId);
 
         const title = `🚂 ${trainInfo.numero} - Retard +${delayMinutes} min`;
-        const body = `Vers ${trainInfo.destination}\nDépart: ${trainInfo.heureDepart} → ${calculateNewTime(trainInfo.heureDepart, delayMinutes)}`;
+        let body = `Vers ${trainInfo.destination}\nDépart: ${trainInfo.heureDepart} → ${calculateNewTime(trainInfo.heureDepart, delayMinutes)}`;
+        if (trainInfo.disruption) {
+            body += `\n${trainInfo.disruption}`;
+        }
 
         if ('Notification' in window && Notification.permission === 'granted') {
             try {
@@ -535,7 +538,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     createDelayNotification({
                         numero: train.number,
                         destination: train.to,
-                        heureDepart: train.scheduled
+                        heureDepart: train.scheduled,
+                        disruption: train.disruption || ''
                     }, train.delay);
                 }
 
@@ -979,11 +983,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         timeHTML = `<span class="train-time">${row.horaire_double_html || fmtTimeHHMM(row.time || row.scheduled)}</span>`;
                     }
 
+                    // Ligne de perturbation (message + lien détails)
+                    let disruptionHTML = '';
+                    const hasDisruption = (isDelayed || isCancelled) && (row.disruption || row.detailUrl);
+                    if (hasDisruption) {
+                        const msgPart = row.disruption
+                            ? `<span class="text-orange-300">${row.disruption}</span>`
+                            : '';
+                        const linkPart = row.detailUrl
+                            ? `<a href="${row.detailUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 underline">${createIcon('external-link', 'w-3 h-3')}Détails SNCF</a>`
+                            : '';
+                        disruptionHTML = `<div class="disruption-info text-[11px] mt-1 flex flex-wrap items-center gap-2">${msgPart}${linkPart}</div>`;
+                    }
+
                     div.innerHTML = `
             <div class="w-16">${timeHTML}</div>
             <div class="flex-1">
               <div class="text-sm font-medium">${cleanDestination(row.to)}</div>
               ${row.trainType === 'via_paris' ? '<div class="text-[11px] text-blue-400">Arrêt à Rouen</div>' : ''}
+              ${disruptionHTML}
             </div>
             <div class="flex items-center gap-2">
               <div class="text-xs text-zinc-300 w-20 whitespace-nowrap">N° ${row.number || '?'}</div>

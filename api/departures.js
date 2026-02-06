@@ -23,6 +23,30 @@ export default async function handler(req, res) {
         "lehavre": "stop_area:SNCF:87413013"
     };
 
+    // Durées typiques et arrêts sur le corridor Rouen <-> Le Havre
+    const CORRIDOR = {
+        "rouen_lehavre": {
+            duration: 65,
+            stops: ["Rouen Rive Droite", "Barentin", "Pavilly", "Motteville", "Yvetot", "Bréauté-Beuzeville", "Le Havre"]
+        },
+        "rouen_yvetot": {
+            duration: 30,
+            stops: ["Rouen Rive Droite", "Barentin", "Pavilly", "Motteville", "Yvetot"]
+        },
+        "rouen_breauté": {
+            duration: 50,
+            stops: ["Rouen Rive Droite", "Barentin", "Pavilly", "Motteville", "Yvetot", "Bréauté-Beuzeville"]
+        },
+        "lehavre_rouen": {
+            duration: 65,
+            stops: ["Le Havre", "Bréauté-Beuzeville", "Yvetot", "Motteville", "Pavilly", "Barentin", "Rouen Rive Droite"]
+        },
+        "lehavre_paris": {
+            duration: 135,
+            stops: ["Le Havre", "Bréauté-Beuzeville", "Yvetot", "Rouen Rive Droite", "Val-de-Reuil", "Paris Saint-Lazare"]
+        }
+    };
+
     const station = (req.query.station || '').toLowerCase();
     const dest = (req.query.dest || '').toLowerCase();
     let limit = parseInt(req.query.limit || 3, 10);
@@ -35,12 +59,12 @@ export default async function handler(req, res) {
 
     try {
         // 1) Essayer garesetconnexions (données temps réel avec voies)
-        let rows = await fetchGaresEtConnexions(station, dest, UIC[station]);
+        let rows = await fetchGaresEtConnexions(station, dest, UIC[station], CORRIDOR);
 
         // 2) Fallback sur l'API SNCF officielle si garesetconnexions échoue
         if (!rows && SNCF_API_KEY) {
             console.log('garesetconnexions failed, falling back to SNCF API');
-            rows = await fetchSncfApi(station, dest, SNCF_API_KEY, STOPS[station]);
+            rows = await fetchSncfApi(station, dest, SNCF_API_KEY, STOPS[station], CORRIDOR);
         }
 
         if (!rows) {
@@ -63,7 +87,7 @@ export default async function handler(req, res) {
 // ========================================
 // SOURCE 1 : garesetconnexions.sncf
 // ========================================
-async function fetchGaresEtConnexions(station, dest, uicCode) {
+async function fetchGaresEtConnexions(station, dest, uicCode, CORRIDOR) {
     try {
         const url = `https://www.garesetconnexions.sncf/schedule-table/Departures/${uicCode}`;
         const response = await fetch(url, {
@@ -137,9 +161,17 @@ async function fetchGaresEtConnexions(station, dest, uicCode) {
                 disruptions.push(train.statusModification.text);
             }
 
+            // Calcul heure d'arrivée estimée et arrêts
+            const corridor = findCorridor(station, train.traffic?.destination, CORRIDOR);
+            const durationMin = corridor ? corridor.duration : 65;
+            const scheduledArrival = addMinutes(hPrevue, durationMin);
+            const expectedArrival = addMinutes(hReelle, durationMin);
+            const stops = corridor ? corridor.stops : [];
+
             rows.push({
                 number: train.trainNumber || '',
                 to: train.traffic?.destination || '',
+                origin: train.traffic?.origin || '',
                 scheduled: hPrevue,
                 expected: hReelle,
                 delay: delayMin,
@@ -151,7 +183,12 @@ async function fetchGaresEtConnexions(station, dest, uicCode) {
                 time: hReelle,
                 trainType: train.trainType || "TER",
                 detailUrl: train.TrafficDetailsUrl || '',
-                disruption: disruptions.join(' — ') || ''
+                disruption: disruptions.join(' — ') || '',
+                arrivalScheduled: scheduledArrival,
+                arrivalExpected: expectedArrival,
+                durationMin: durationMin,
+                stops: stops,
+                stopsCount: stops.length > 0 ? stops.length - 1 : 0
             });
         }
 
@@ -175,10 +212,34 @@ function formatTime(isoString) {
     });
 }
 
+// Ajoute N minutes à une heure HH:MM
+function addMinutes(hhmm, minutes) {
+    if (!hhmm || hhmm === '--:--') return '--:--';
+    const [h, m] = hhmm.split(':').map(Number);
+    const total = h * 60 + m + minutes;
+    const nh = Math.floor(total / 60) % 24;
+    const nm = total % 60;
+    return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+}
+
+// Trouve le corridor correspondant à la station de départ et destination
+function findCorridor(station, destination, CORRIDOR) {
+    const destLow = (destination || '').toLowerCase();
+    if (station === 'rouen') {
+        if (/le\s*havre|harfleur|montivilliers|graville/i.test(destLow)) return CORRIDOR["rouen_lehavre"];
+        if (/yvetot/i.test(destLow)) return CORRIDOR["rouen_yvetot"];
+        if (/bréauté|breauté|beuzeville/i.test(destLow)) return CORRIDOR["rouen_breauté"];
+    } else if (station === 'lehavre') {
+        if (/paris/i.test(destLow)) return CORRIDOR["lehavre_paris"];
+        return CORRIDOR["lehavre_rouen"];
+    }
+    return null;
+}
+
 // ========================================
 // SOURCE 2 : API SNCF officielle (fallback)
 // ========================================
-async function fetchSncfApi(station, dest, apiKey, stopArea) {
+async function fetchSncfApi(station, dest, apiKey, stopArea, CORRIDOR) {
     try {
         const SNCF_BASE = "https://api.sncf.com/v1/coverage/sncf";
         const count = 30;
@@ -255,9 +316,17 @@ async function fetchSncfApi(station, dest, apiKey, stopArea) {
                 horaireHtml = `<span>${hPrevue}</span>`;
             }
 
+            // Calcul heure d'arrivée estimée et arrêts
+            const corridor = findCorridor(station, di.direction, CORRIDOR);
+            const durationMin2 = corridor ? corridor.duration : 65;
+            const scheduledArr = addMinutes(hPrevue, durationMin2);
+            const expectedArr = addMinutes(hReelle, durationMin2);
+            const stops2 = corridor ? corridor.stops : [];
+
             rows.push({
                 number: (di.headsign || di.code || '').replace(/\s/g, ''),
                 to: di.direction,
+                origin: '',
                 scheduled: hPrevue,
                 expected: hReelle,
                 delay: delayMin,
@@ -267,7 +336,14 @@ async function fetchSncfApi(station, dest, apiKey, stopArea) {
                 ts: realTs,
                 horaire_double_html: horaireHtml,
                 time: hReelle,
-                trainType: "normal"
+                trainType: "normal",
+                detailUrl: '',
+                disruption: '',
+                arrivalScheduled: scheduledArr,
+                arrivalExpected: expectedArr,
+                durationMin: durationMin2,
+                stops: stops2,
+                stopsCount: stops2.length > 0 ? stops2.length - 1 : 0
             });
         }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockup - Perturbations En-Route</title>
+<title>Mockup v2 - En-Route</title>
 <style>
   :root, [data-theme="dark"] {
     color-scheme: dark;
@@ -25,19 +25,20 @@
   .card {
     background: var(--glass); border: 1px solid var(--bd); border-radius: var(--radius);
     box-shadow: var(--shadow); backdrop-filter: blur(16px); padding: 0.875rem;
-    max-width: 420px; margin: 0 auto;
+    max-width: 440px; margin: 0 auto;
   }
-  .card-header { display: flex; align-items: center; justify-content: between; margin-bottom: 0.75rem; gap: 0.5rem; }
-  .card-header svg { width: 16px; height: 16px; color: var(--ink-2); }
+  .card-header { display: flex; align-items: center; margin-bottom: 0.75rem; gap: 0.5rem; }
   .card-title { font-size: 0.75rem; color: var(--ink-2); font-weight: 700; letter-spacing: 0.05em; }
   .countdown { font-size: 0.75rem; font-family: 'SF Mono', monospace; color: var(--primary); font-weight: 700; margin-left: auto; }
 
+  /* ===== TRAIN ROW ===== */
   .train-row {
     position: relative; display: flex; align-items: center; gap: 0.75rem;
     border-radius: var(--r-sm); padding: 0.75rem 0.5rem; margin: 0.25rem -0.5rem;
-    cursor: default; transition: all 0.2s ease;
+    cursor: pointer; transition: all 0.2s ease;
   }
   .train-row:hover { background: var(--layer); }
+  .train-row:active { transform: scale(0.99); }
   .train-row.next-train {
     background: linear-gradient(135deg, var(--primary-weak), transparent 60%);
     border-left: 3px solid var(--primary);
@@ -47,124 +48,183 @@
   }
   .train-row + .train-row { border-top: 1px solid var(--bd-soft); }
 
-  /* Clickable delayed rows */
-  .train-row.clickable { cursor: pointer; }
-  .train-row.clickable:hover { background: rgba(245, 158, 11, 0.08); }
-  .train-row.clickable.next-train:hover {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), var(--layer) 60%);
-  }
-
+  .time-col { width: 4rem; flex-shrink: 0; }
   .train-time {
     font-family: 'SF Mono', 'Fira Code', monospace; font-variant-numeric: tabular-nums;
     font-weight: 600; font-size: 1.25rem; color: var(--ink-1);
   }
   .train-time-wrapper { display: flex; flex-direction: column; gap: 0.125rem; }
-  .train-time-delayed {
-    color: var(--warn); text-decoration: line-through; font-size: 0.875rem; opacity: 0.7;
-  }
+  .train-time-delayed { color: var(--warn); text-decoration: line-through; font-size: 0.875rem; opacity: 0.7; }
   .train-time-expected { color: var(--warn); font-weight: 700; }
 
-  .status-badge {
-    display: inline-flex; align-items: center; gap: 0.25rem;
-    padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;
-    white-space: nowrap;
-  }
-  .status-ontime { background: rgba(16,185,129,0.2); color: #34D399; border: 1px solid rgba(16,185,129,0.3); }
-  .status-delayed { background: rgba(245,158,11,0.2); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
-  .status-cancelled { background: rgba(239,68,68,0.2); color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
-
-  .platform-badge {
-    padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;
-    font-weight: 500; background: var(--primary); color: white;
-  }
-  .train-number { font-size: 0.75rem; color: var(--ink-3); white-space: nowrap; }
+  .info-col { flex: 1; min-width: 0; }
   .dest { font-size: 0.875rem; font-weight: 500; }
+  .arrival-hint { font-size: 0.7rem; color: var(--ink-3); margin-top: 1px; }
+  .arrival-hint .arr-time { color: var(--ink-2); font-weight: 600; }
+  .arrival-hint .arr-time.delayed { color: var(--warn); }
 
-  /* Tap hint on delayed rows */
-  .tap-hint {
-    font-size: 10px; color: var(--warn); opacity: 0.6; margin-top: 2px;
+  .meta-col { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  .train-number { font-size: 0.7rem; color: var(--ink-3); white-space: nowrap; }
+  .platform-badge {
+    padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.7rem;
+    font-weight: 600; background: var(--primary); color: white;
   }
 
-  /* ========== POPUP / MODAL ========== */
+  .status-badge {
+    display: inline-flex; align-items: center; padding: 0.2rem 0.5rem;
+    border-radius: 9999px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+  }
+  .status-ontime { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+  .status-delayed { background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid rgba(245,158,11,0.25); }
+
+  /* Chevron hint */
+  .chevron { color: var(--ink-3); opacity: 0.4; font-size: 0.8rem; margin-left: 0.25rem; }
+
+  /* ===== MODAL ===== */
   .modal-overlay {
     display: none; position: fixed; inset: 0; z-index: 1000;
     background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-    align-items: center; justify-content: center; padding: 1rem;
+    align-items: flex-end; justify-content: center; padding: 0;
   }
   .modal-overlay.active { display: flex; }
+  @media (min-width: 500px) {
+    .modal-overlay { align-items: center; padding: 1rem; }
+    .modal { border-radius: var(--radius) !important; max-height: 85vh !important; }
+  }
 
   .modal {
-    background: var(--bg-1); border: 1px solid var(--bd); border-radius: var(--radius);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5); max-width: 400px; width: 100%;
-    animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    overflow: hidden;
+    background: var(--bg-1); border: 1px solid var(--bd);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5); max-width: 440px; width: 100%;
+    animation: sheetUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-y: auto; max-height: 90vh;
   }
-  @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  @keyframes sheetUp {
+    from { opacity: 0; transform: translateY(100px); }
     to { opacity: 1; transform: none; }
   }
 
-  .modal-header {
+  /* Modal Header */
+  .modal-head {
     display: flex; align-items: center; gap: 0.75rem;
     padding: 1rem 1.25rem; border-bottom: 1px solid var(--bd);
-    background: rgba(245, 158, 11, 0.08);
+    position: sticky; top: 0; background: var(--bg-1); z-index: 1;
   }
-  .modal-header .icon-circle {
-    width: 40px; height: 40px; border-radius: 50%;
-    background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.3);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    font-size: 1.1rem;
+  .modal-head.has-delay { background: rgba(245, 158, 11, 0.06); }
+  .modal-head .train-icon {
+    width: 42px; height: 42px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;
   }
-  .modal-header-text { flex: 1; }
-  .modal-header-title { font-weight: 700; font-size: 1rem; color: var(--ink-1); }
-  .modal-header-sub { font-size: 0.8rem; color: var(--warn); font-weight: 600; margin-top: 2px; }
-
+  .modal-head .train-icon.green { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); }
+  .modal-head .train-icon.orange { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.25); }
+  .modal-head-info { flex: 1; }
+  .modal-head-title { font-weight: 700; font-size: 1rem; }
+  .modal-head-sub { font-size: 0.8rem; color: var(--ink-3); margin-top: 2px; }
+  .modal-head-sub .delay-tag { color: var(--warn); font-weight: 600; }
   .modal-close {
     background: var(--layer); border: 1px solid var(--bd); border-radius: 50%;
-    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; color: var(--ink-3); font-size: 1.1rem; transition: all 0.15s;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--ink-3); font-size: 1rem; transition: all 0.15s;
   }
   .modal-close:hover { background: var(--bd); color: var(--ink-1); }
 
-  .modal-body { padding: 1.25rem; }
+  /* Modal body */
+  .modal-body { padding: 1rem 1.25rem; }
 
-  .info-row {
-    display: flex; align-items: flex-start; gap: 0.75rem;
-    padding: 0.6rem 0; font-size: 0.85rem;
+  /* Horaires résumé */
+  .schedule-bar {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--layer); border: 1px solid var(--bd); border-radius: var(--r-sm);
+    padding: 0.75rem 1rem; margin-bottom: 1rem;
   }
-  .info-row + .info-row { border-top: 1px solid var(--bd-soft); }
-  .info-label { color: var(--ink-3); min-width: 70px; font-size: 0.75rem; padding-top: 2px; }
-  .info-value { color: var(--ink-1); flex: 1; }
+  .schedule-bar .station { text-align: center; flex: 1; }
+  .schedule-bar .station-name { font-size: 0.65rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .schedule-bar .station-time { font-family: 'SF Mono', monospace; font-weight: 700; font-size: 1.1rem; margin-top: 2px; }
+  .schedule-bar .station-time.delayed { color: var(--warn); }
+  .schedule-bar .station-time s { color: var(--ink-3); font-size: 0.8rem; font-weight: 400; }
+  .schedule-bar .arrow { color: var(--ink-3); font-size: 1.2rem; flex-shrink: 0; }
+  .schedule-bar .duration {
+    font-size: 0.65rem; color: var(--ink-3); text-align: center;
+    background: var(--bg-1); border-radius: 4px; padding: 2px 6px; flex-shrink: 0;
+  }
 
+  /* Infos */
+  .detail-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.5rem 0; font-size: 0.85rem;
+  }
+  .detail-row + .detail-row { border-top: 1px solid var(--bd-soft); }
+  .detail-label { color: var(--ink-3); font-size: 0.75rem; min-width: 60px; }
+  .detail-value { color: var(--ink-1); flex: 1; }
+
+  /* Disruption box */
   .disruption-box {
-    background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.07); border: 1px solid rgba(245, 158, 11, 0.2);
     border-radius: var(--r-sm); padding: 0.75rem; margin-top: 0.75rem;
   }
-  .disruption-box .label {
-    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--warn); font-weight: 700; margin-bottom: 0.4rem;
+  .disruption-box .d-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--warn); font-weight: 700; margin-bottom: 0.35rem;
+    display: flex; align-items: center; gap: 0.3rem;
   }
-  .disruption-box .message { font-size: 0.85rem; color: var(--ink-2); line-height: 1.5; }
+  .disruption-box .d-msg { font-size: 0.8rem; color: var(--ink-2); line-height: 1.5; }
 
-  .modal-footer {
+  /* Stops timeline */
+  .stops-section { margin-top: 1rem; }
+  .stops-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-3); font-weight: 700; margin-bottom: 0.5rem;
+  }
+  .stop-list { padding-left: 0; list-style: none; }
+  .stop-item {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.4rem 0; font-size: 0.8rem; position: relative;
+  }
+  .stop-dot-col {
+    display: flex; flex-direction: column; align-items: center; width: 12px; flex-shrink: 0;
+    position: relative;
+  }
+  .stop-dot {
+    width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--primary);
+    background: var(--bg-1); z-index: 1; flex-shrink: 0;
+  }
+  .stop-dot.active { background: var(--primary); }
+  .stop-dot.delayed { border-color: var(--warn); }
+  .stop-dot.delayed.active { background: var(--warn); }
+  .stop-line {
+    width: 2px; background: var(--bd); flex: 1; min-height: 20px;
+  }
+  .stop-item:last-child .stop-line { display: none; }
+  .stop-info { flex: 1; padding-bottom: 0.5rem; }
+  .stop-name { font-weight: 500; color: var(--ink-1); }
+  .stop-name.dim { color: var(--ink-3); font-weight: 400; }
+  .stop-time-col {
+    font-family: 'SF Mono', monospace; font-size: 0.75rem; color: var(--ink-3);
+    width: 40px; text-align: right; flex-shrink: 0;
+  }
+  .stop-time-col.delayed { color: var(--warn); }
+  .stop-time-col s { font-size: 0.65rem; }
+
+  /* Footer */
+  .modal-foot {
     padding: 0.75rem 1.25rem; border-top: 1px solid var(--bd);
-    display: flex; gap: 0.5rem;
+    display: flex; gap: 0.5rem; position: sticky; bottom: 0; background: var(--bg-1);
   }
-  .btn-detail {
-    display: inline-flex; align-items: center; gap: 0.4rem;
+  .btn-link {
+    display: inline-flex; align-items: center; gap: 0.4rem; justify-content: center;
     background: var(--primary); color: white; border: none; border-radius: var(--r-sm);
-    padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 600;
-    cursor: pointer; transition: all 0.15s; text-decoration: none; flex: 1; justify-content: center;
+    padding: 0.55rem 1rem; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; text-decoration: none; flex: 1;
   }
-  .btn-detail:hover { filter: brightness(1.15); }
-  .btn-close-modal {
+  .btn-link:hover { filter: brightness(1.15); }
+  .btn-secondary {
     background: var(--layer); color: var(--ink-2); border: 1px solid var(--bd);
-    border-radius: var(--r-sm); padding: 0.5rem 1rem; font-size: 0.8rem;
+    border-radius: var(--r-sm); padding: 0.55rem 1rem; font-size: 0.8rem;
     font-weight: 600; cursor: pointer; transition: all 0.15s;
   }
-  .btn-close-modal:hover { background: var(--bd); color: var(--ink-1); }
+  .btn-secondary:hover { background: var(--bd); color: var(--ink-1); }
 
-  .legend { text-align: center; margin-top: 1.5rem; font-size: 0.7rem; color: var(--ink-3); }
+  .legend { text-align: center; margin-top: 1.5rem; font-size: 0.65rem; color: var(--ink-3); }
 </style>
 </head>
 <body>
@@ -172,158 +232,308 @@
 <!-- ===== CARTE TRAINS ===== -->
 <div class="card">
   <div class="card-header">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/></svg>
     <span class="card-title">de ROUEN vers LE HAVRE</span>
     <span class="countdown">Prochain: 03mn</span>
   </div>
 
-  <!-- Train 1 : En retard (CLIQUABLE) -->
-  <div class="train-row next-train clickable" onclick="openModal('modal-1')">
-    <div style="width:4rem">
+  <!-- Train 1 : En retard +5 min (prochain) -->
+  <div class="train-row next-train" onclick="openModal('modal-1')">
+    <div class="time-col">
       <div class="train-time-wrapper">
         <span class="train-time-delayed">15:07</span>
         <span class="train-time train-time-expected">15:12</span>
       </div>
     </div>
-    <div style="flex:1">
+    <div class="info-col">
       <div class="dest">Yvetot</div>
-      <div class="tap-hint">Tap pour voir la perturbation</div>
+      <div class="arrival-hint">Arr. <span class="arr-time delayed">15:43</span> &middot; 4 arrets</div>
     </div>
-    <div style="display:flex;align-items:center;gap:0.5rem">
-      <span class="train-number">N° 850618</span>
-      <span class="platform-badge">Voie 2</span>
+    <div class="meta-col">
+      <span class="train-number">850618</span>
+      <span class="platform-badge">V.2</span>
     </div>
-    <span class="status-badge status-delayed">Retard +5 min</span>
+    <span class="status-badge status-delayed">+5 min</span>
+    <span class="chevron">&rsaquo;</span>
   </div>
 
-  <!-- Train 2 : A l'heure (non cliquable) -->
-  <div class="train-row">
-    <div style="width:4rem">
+  <!-- Train 2 : A l'heure -->
+  <div class="train-row" onclick="openModal('modal-2')">
+    <div class="time-col">
       <span class="train-time">16:00</span>
     </div>
-    <div style="flex:1">
+    <div class="info-col">
       <div class="dest">Le Havre</div>
+      <div class="arrival-hint">Arr. <span class="arr-time">17:03</span> &middot; 5 arrets</div>
     </div>
-    <div style="display:flex;align-items:center;gap:0.5rem">
-      <span class="train-number">N° 3119</span>
+    <div class="meta-col">
+      <span class="train-number">3119</span>
     </div>
     <span class="status-badge status-ontime">A l'heure</span>
+    <span class="chevron">&rsaquo;</span>
   </div>
 
-  <!-- Train 3 : Gros retard (CLIQUABLE) -->
-  <div class="train-row clickable" onclick="openModal('modal-2')">
-    <div style="width:4rem">
+  <!-- Train 3 : Gros retard +20 min -->
+  <div class="train-row" onclick="openModal('modal-3')">
+    <div class="time-col">
       <div class="train-time-wrapper">
         <span class="train-time-delayed">16:43</span>
         <span class="train-time train-time-expected">17:03</span>
       </div>
     </div>
-    <div style="flex:1">
+    <div class="info-col">
       <div class="dest">Le Havre</div>
-      <div class="tap-hint">Tap pour voir la perturbation</div>
+      <div class="arrival-hint">Arr. <span class="arr-time delayed">18:23</span> &middot; 5 arrets</div>
     </div>
-    <div style="display:flex;align-items:center;gap:0.5rem">
-      <span class="train-number">N° 3121</span>
+    <div class="meta-col">
+      <span class="train-number">3121</span>
     </div>
-    <span class="status-badge status-delayed">Retard +20 min</span>
+    <span class="status-badge status-delayed">+20 min</span>
+    <span class="chevron">&rsaquo;</span>
   </div>
-
 </div>
 
-<div class="legend">Mockup En-Route — Clique sur les lignes en retard (orange)</div>
+<div class="legend">Mockup En-Route v2 — Toutes les cartes sont cliquables</div>
 
-<!-- ===== POPUP TRAIN 1 (retard +5 min) ===== -->
-<div class="modal-overlay" id="modal-1" onclick="closeModal(event, 'modal-1')">
+<!-- ===== POPUP 1 : Retard +5 min ===== -->
+<div class="modal-overlay" id="modal-1" onclick="closeModal('modal-1')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="icon-circle">&#9888;</div>
-      <div class="modal-header-text">
-        <div class="modal-header-title">Train TER N°850618</div>
-        <div class="modal-header-sub">Retard +5 min &middot; Voie 2</div>
+    <div class="modal-head has-delay">
+      <div class="train-icon orange">&#9888;</div>
+      <div class="modal-head-info">
+        <div class="modal-head-title">TER 850618</div>
+        <div class="modal-head-sub"><span class="delay-tag">Retard +5 min</span> &middot; Voie 2</div>
       </div>
-      <button class="modal-close" onclick="closeModal(event, 'modal-1')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modal-1')">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="info-row">
-        <span class="info-label">Trajet</span>
-        <span class="info-value">Elbeuf - Saint-Aubin &rarr; Yvetot</span>
+      <div class="schedule-bar">
+        <div class="station">
+          <div class="station-name">Rouen</div>
+          <div class="station-time delayed"><s>15:07</s> 15:12</div>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="duration">~31 min</div>
+        <span class="arrow">&rarr;</span>
+        <div class="station">
+          <div class="station-name">Yvetot</div>
+          <div class="station-time delayed">15:43</div>
+        </div>
       </div>
-      <div class="info-row">
-        <span class="info-label">Depart</span>
-        <span class="info-value"><s style="color:var(--ink-3)">15:07</s> &nbsp;<strong style="color:var(--warn)">15:12</strong></span>
+
+      <div class="detail-row">
+        <span class="detail-label">Type</span>
+        <span class="detail-value">TER Normandie</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">Voie</span>
-        <span class="info-value"><span class="platform-badge">Voie 2</span></span>
+      <div class="detail-row">
+        <span class="detail-label">Origine</span>
+        <span class="detail-value">Elbeuf - Saint-Aubin</span>
       </div>
+
       <div class="disruption-box">
-        <div class="label">Perturbation</div>
-        <div class="message">Le train a ete mis a disposition tardivement a la suite du retard sur un trajet precedent.</div>
+        <div class="d-label">&#9888; Perturbation</div>
+        <div class="d-msg">Le train a ete mis a disposition tardivement a la suite du retard sur un trajet precedent.</div>
+      </div>
+
+      <div class="stops-section">
+        <div class="stops-title">Gares desservies</div>
+        <ul class="stop-list">
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed active"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Rouen Rive Droite</div></div>
+            <div class="stop-time-col delayed"><s>15:07</s><br>15:12</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Barentin</div></div>
+            <div class="stop-time-col delayed">15:22</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Pavilly</div></div>
+            <div class="stop-time-col delayed">15:27</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Motteville</div></div>
+            <div class="stop-time-col delayed">15:33</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed active"></div></div>
+            <div class="stop-info"><div class="stop-name">Yvetot</div></div>
+            <div class="stop-time-col delayed">15:43</div>
+          </li>
+        </ul>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-close-modal" onclick="closeModal(event, 'modal-1')">Fermer</button>
-      <a href="https://www.sncf-voyageurs.com/fr/voyagez-avec-nous/horaires-et-itineraires/recherche-de-train/detail-train/?numeroCirculation=850618&dateCirculation=2026-02-06&destinationCode=87411017" target="_blank" class="btn-detail">
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modal-1')">Fermer</button>
+      <a href="#" class="btn-link" target="_blank">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Details SNCF
+        Voir sur SNCF
       </a>
     </div>
   </div>
 </div>
 
-<!-- ===== POPUP TRAIN 2 (retard +20 min) ===== -->
-<div class="modal-overlay" id="modal-2" onclick="closeModal(event, 'modal-2')">
+<!-- ===== POPUP 2 : A l'heure ===== -->
+<div class="modal-overlay" id="modal-2" onclick="closeModal('modal-2')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="icon-circle">&#9888;</div>
-      <div class="modal-header-text">
-        <div class="modal-header-title">Train TER N°3121</div>
-        <div class="modal-header-sub">Retard +20 min</div>
+    <div class="modal-head">
+      <div class="train-icon green">&#128646;</div>
+      <div class="modal-head-info">
+        <div class="modal-head-title">TER 3119</div>
+        <div class="modal-head-sub">A l'heure</div>
       </div>
-      <button class="modal-close" onclick="closeModal(event, 'modal-2')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modal-2')">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="info-row">
-        <span class="info-label">Trajet</span>
-        <span class="info-value">Paris Saint-Lazare &rarr; Le Havre</span>
+      <div class="schedule-bar">
+        <div class="station">
+          <div class="station-name">Rouen</div>
+          <div class="station-time">16:00</div>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="duration">~1h03</div>
+        <span class="arrow">&rarr;</span>
+        <div class="station">
+          <div class="station-name">Le Havre</div>
+          <div class="station-time">17:03</div>
+        </div>
       </div>
-      <div class="info-row">
-        <span class="info-label">Depart</span>
-        <span class="info-value"><s style="color:var(--ink-3)">16:43</s> &nbsp;<strong style="color:var(--warn)">17:03</strong></span>
+
+      <div class="detail-row">
+        <span class="detail-label">Type</span>
+        <span class="detail-value">TER Normandie</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">Voie</span>
-        <span class="info-value" style="color:var(--ink-3)">Non assignee</span>
+      <div class="detail-row">
+        <span class="detail-label">Origine</span>
+        <span class="detail-value">Paris Saint-Lazare</span>
       </div>
-      <div class="disruption-box">
-        <div class="label">Perturbation</div>
-        <div class="message">Circulation interrompue entre Mantes-la-Jolie et Rouen suite a un derangement d'installations en gare de Vernon. Reprise estimee a 17h00.</div>
+
+      <div class="stops-section">
+        <div class="stops-title">Gares desservies</div>
+        <ul class="stop-list">
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot active"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Rouen Rive Droite</div></div>
+            <div class="stop-time-col">16:00</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Yvetot</div></div>
+            <div class="stop-time-col">16:25</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Breauté - Beuzeville</div></div>
+            <div class="stop-time-col">16:40</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot active"></div></div>
+            <div class="stop-info"><div class="stop-name">Le Havre</div></div>
+            <div class="stop-time-col">17:03</div>
+          </li>
+        </ul>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-close-modal" onclick="closeModal(event, 'modal-2')">Fermer</button>
-      <a href="#" class="btn-detail">
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modal-2')">Fermer</button>
+      <a href="#" class="btn-link" target="_blank">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Details SNCF
+        Voir sur SNCF
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== POPUP 3 : Gros retard ===== -->
+<div class="modal-overlay" id="modal-3" onclick="closeModal('modal-3')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head has-delay">
+      <div class="train-icon orange">&#9888;</div>
+      <div class="modal-head-info">
+        <div class="modal-head-title">TER 3121</div>
+        <div class="modal-head-sub"><span class="delay-tag">Retard +20 min</span></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-3')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="schedule-bar">
+        <div class="station">
+          <div class="station-name">Rouen</div>
+          <div class="station-time delayed"><s>16:43</s> 17:03</div>
+        </div>
+        <span class="arrow">&rarr;</span>
+        <div class="duration">~1h20</div>
+        <span class="arrow">&rarr;</span>
+        <div class="station">
+          <div class="station-name">Le Havre</div>
+          <div class="station-time delayed"><s>18:03</s> 18:23</div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Type</span>
+        <span class="detail-value">TER Normandie</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Origine</span>
+        <span class="detail-value">Paris Saint-Lazare</span>
+      </div>
+
+      <div class="disruption-box">
+        <div class="d-label">&#9888; Perturbation</div>
+        <div class="d-msg">Circulation interrompue entre Mantes-la-Jolie et Rouen suite a un derangement d'installations en gare de Vernon. Reprise estimee a 17h00.</div>
+      </div>
+
+      <div class="stops-section">
+        <div class="stops-title">Gares desservies</div>
+        <ul class="stop-list">
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed active"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Rouen Rive Droite</div></div>
+            <div class="stop-time-col delayed"><s>16:43</s><br>17:03</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Motteville</div></div>
+            <div class="stop-time-col delayed">17:28</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Yvetot</div></div>
+            <div class="stop-time-col delayed">17:38</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed"></div><div class="stop-line"></div></div>
+            <div class="stop-info"><div class="stop-name">Breauté - Beuzeville</div></div>
+            <div class="stop-time-col delayed">17:55</div>
+          </li>
+          <li class="stop-item">
+            <div class="stop-dot-col"><div class="stop-dot delayed active"></div></div>
+            <div class="stop-info"><div class="stop-name">Le Havre</div></div>
+            <div class="stop-time-col delayed"><s>18:03</s><br>18:23</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('modal-3')">Fermer</button>
+      <a href="#" class="btn-link" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Voir sur SNCF
       </a>
     </div>
   </div>
 </div>
 
 <script>
-function openModal(id) {
-  document.getElementById(id).classList.add('active');
-}
-function closeModal(event, id) {
-  if (event) event.stopPropagation();
-  document.getElementById(id).classList.remove('active');
-}
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
-  }
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
 });
 </script>
-
 </body>
 </html>

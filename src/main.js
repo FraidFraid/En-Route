@@ -951,27 +951,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isDelayed = String(row.status || '').toLowerCase().includes('retard');
                     const isCancelled = String(row.status || '').toLowerCase().includes('supprim');
 
-                    // Classes pour la ligne de train
+                    // Classes pour la ligne de train - cliquable
                     div.className = `train-row flex items-center gap-3 ${isNextTrain ? 'next-train' : ''}`;
+                    div.style.cursor = 'pointer';
+                    div.addEventListener('click', (e) => {
+                        if (e.target.closest('a')) return; // Ne pas ouvrir le modal si clic sur lien
+                        openTrainModal(row, stationKey);
+                    });
 
-                    // Status badge classes
+                    // Status badge
                     let statusClass = 'status-badge status-ontime';
                     let statusText = row.status || 'À l\'heure';
-
                     if (isCancelled) {
                         statusClass = 'status-badge status-cancelled';
                     } else if (isDelayed) {
                         statusClass = 'status-badge status-delayed';
                     }
 
-                    let platformDiv = null;
+                    // Platform badge
+                    let platformHTML = '';
                     if (row.platform && String(row.platform).trim() !== '') {
-                        platformDiv = document.createElement('div');
-                        platformDiv.className = 'px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white';
-                        platformDiv.textContent = `Voie ${row.platform}`;
+                        platformHTML = `<span class="platform-badge">V.${row.platform}</span>`;
                     }
 
-                    // Typographie améliorée pour les horaires
+                    // Typographie horaires
                     let timeHTML = '';
                     if (isDelayed && row.scheduled && row.expected && row.scheduled !== row.expected) {
                         timeHTML = `
@@ -980,38 +983,32 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="train-time train-time-expected">${fmtTimeHHMM(row.expected)}</span>
                             </div>`;
                     } else {
-                        timeHTML = `<span class="train-time">${row.horaire_double_html || fmtTimeHHMM(row.time || row.scheduled)}</span>`;
+                        timeHTML = `<span class="train-time">${fmtTimeHHMM(row.time || row.scheduled)}</span>`;
                     }
 
-                    // Ligne de perturbation (message + lien détails)
-                    let disruptionHTML = '';
-                    const hasDisruption = (isDelayed || isCancelled) && (row.disruption || row.detailUrl);
-                    if (hasDisruption) {
-                        const msgPart = row.disruption
-                            ? `<span class="text-orange-300">${row.disruption}</span>`
-                            : '';
-                        const linkPart = row.detailUrl
-                            ? `<a href="${row.detailUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 underline">${createIcon('external-link', 'w-3 h-3')}Détails SNCF</a>`
-                            : '';
-                        disruptionHTML = `<div class="disruption-info text-[11px] mt-1 flex flex-wrap items-center gap-2">${msgPart}${linkPart}</div>`;
+                    // Heure d'arrivée estimée
+                    const arrTime = row.arrivalExpected || row.arrivalScheduled || '';
+                    const arrDelayed = isDelayed && row.arrivalExpected && row.arrivalScheduled && row.arrivalExpected !== row.arrivalScheduled;
+                    const stopsInfo = row.stopsCount > 0 ? ` · ${row.stopsCount} arrêt${row.stopsCount > 1 ? 's' : ''}` : '';
+                    let arrivalHintHTML = '';
+                    if (arrTime && arrTime !== '--:--') {
+                        arrivalHintHTML = `<div class="arrival-hint">Arr. <span class="arr-time${arrDelayed ? ' delayed' : ''}">${arrTime}</span>${stopsInfo}</div>`;
                     }
 
                     div.innerHTML = `
-            <div class="w-16">${timeHTML}</div>
-            <div class="flex-1">
-              <div class="text-sm font-medium">${cleanDestination(row.to)}</div>
+            <div class="time-col">${timeHTML}</div>
+            <div class="info-col">
+              <div class="dest">${cleanDestination(row.to)}</div>
               ${row.trainType === 'via_paris' ? '<div class="text-[11px] text-blue-400">Arrêt à Rouen</div>' : ''}
-              ${disruptionHTML}
+              ${arrivalHintHTML}
             </div>
-            <div class="flex items-center gap-2">
-              <div class="text-xs text-zinc-300 w-20 whitespace-nowrap">N° ${row.number || '?'}</div>
+            <div class="meta-col">
+              <span class="train-number">${row.number || ''}</span>
+              ${platformHTML}
             </div>
             <span class="${statusClass}">${statusText}</span>
+            <span class="chevron">›</span>
           `;
-                    if (platformDiv) {
-                        const infoBloc = div.querySelector('.flex.items-center.gap-2');
-                        if (infoBloc) infoBloc.appendChild(platformDiv);
-                    }
                     rowsEl.appendChild(div);
                 });
 
@@ -1034,6 +1031,226 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         el.addEventListener('click', (ev) => { if (ev.target.closest('[data-action="refresh"]')) load(true); });
         load();
+    }
+
+    // ========================================
+    // MODAL POPUP — Détails train
+    // ========================================
+
+    // Noms de gare pour le résumé
+    const STATION_NAMES = {
+        'rouen': 'Rouen Rive Droite',
+        'lehavre': 'Le Havre'
+    };
+
+    function createModalOverlay() {
+        let overlay = document.getElementById('train-modal-overlay');
+        if (overlay) return overlay;
+
+        overlay = document.createElement('div');
+        overlay.id = 'train-modal-overlay';
+        overlay.className = 'modal-overlay';
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeTrainModal();
+        });
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+
+    function closeTrainModal() {
+        const overlay = document.getElementById('train-modal-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => { overlay.innerHTML = ''; }, 300);
+        }
+    }
+
+    // Fermer avec Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeTrainModal();
+    });
+
+    function openTrainModal(row, stationKey) {
+        const overlay = createModalOverlay();
+        const isDelayed = row.delay > 0;
+        const isCancelled = String(row.status || '').toLowerCase().includes('supprim') || String(row.status || '').toLowerCase().includes('annul');
+
+        const departStation = STATION_NAMES[stationKey] || stationKey;
+        const destName = cleanDestination(row.to);
+
+        // Header
+        const iconColor = (isDelayed || isCancelled) ? 'orange' : 'green';
+        const iconEmoji = (isDelayed || isCancelled) ? '&#9888;' : '&#128646;';
+        const headClass = (isDelayed || isCancelled) ? 'modal-head has-delay' : 'modal-head';
+
+        let subHTML = '';
+        if (isDelayed) {
+            subHTML = `<span class="delay-tag">Retard +${row.delay} min</span>`;
+        } else if (isCancelled) {
+            subHTML = `<span style="color:var(--err);font-weight:600">Supprimé</span>`;
+        } else {
+            subHTML = `À l'heure`;
+        }
+        if (row.platform) {
+            subHTML += ` · Voie ${row.platform}`;
+        }
+
+        // Schedule bar
+        const depScheduled = fmtTimeHHMM(row.scheduled);
+        const depExpected = fmtTimeHHMM(row.expected);
+        const arrScheduled = row.arrivalScheduled || '--:--';
+        const arrExpected = row.arrivalExpected || '--:--';
+        const durationMin = row.durationMin || 65;
+        const durationLabel = durationMin >= 60
+            ? `~${Math.floor(durationMin/60)}h${String(durationMin%60).padStart(2,'0')}`
+            : `~${durationMin} min`;
+
+        let depTimeHTML, arrTimeHTML;
+        if (isDelayed && depScheduled !== depExpected) {
+            depTimeHTML = `<s>${depScheduled}</s> ${depExpected}`;
+        } else {
+            depTimeHTML = depScheduled;
+        }
+        if (isDelayed && arrScheduled !== arrExpected) {
+            arrTimeHTML = `<s>${arrScheduled}</s> ${arrExpected}`;
+        } else {
+            arrTimeHTML = arrScheduled;
+        }
+        const depTimeClass = isDelayed ? ' delayed' : '';
+        const arrTimeClass = (isDelayed && arrScheduled !== arrExpected) ? ' delayed' : '';
+
+        // Details
+        const trainLabel = `${row.trainType || 'TER'} ${row.number}`;
+        const originHTML = row.origin ? `
+            <div class="detail-row">
+                <span class="detail-label">Origine</span>
+                <span class="detail-value">${row.origin}</span>
+            </div>` : '';
+
+        // Disruption box
+        let disruptionHTML = '';
+        if ((isDelayed || isCancelled) && row.disruption) {
+            disruptionHTML = `
+            <div class="disruption-box">
+                <div class="d-label">&#9888; Perturbation</div>
+                <div class="d-msg">${row.disruption}</div>
+            </div>`;
+        }
+
+        // Stops timeline
+        let stopsHTML = '';
+        if (row.stops && row.stops.length > 0) {
+            const stopsItems = row.stops.map((stop, i) => {
+                const isFirst = i === 0;
+                const isLast = i === row.stops.length - 1;
+                const dotClass = `stop-dot${isDelayed ? ' delayed' : ''}${(isFirst || isLast) ? ' active' : ''}`;
+                const lineHTML = isLast ? '' : '<div class="stop-line"></div>';
+
+                // Estimer les heures intermédiaires
+                let stopTimeHTML = '';
+                if (row.stops.length > 1 && durationMin > 0) {
+                    const fraction = i / (row.stops.length - 1);
+                    const baseTime = depScheduled;
+                    const [bh, bm] = baseTime.split(':').map(Number);
+                    const totalBase = bh * 60 + bm + Math.round(fraction * durationMin);
+                    const sh = Math.floor(totalBase / 60) % 24;
+                    const sm = totalBase % 60;
+                    const scheduledStop = `${String(sh).padStart(2,'0')}:${String(sm).padStart(2,'0')}`;
+
+                    if (isDelayed) {
+                        const [eh, em] = depExpected.split(':').map(Number);
+                        const totalExp = eh * 60 + em + Math.round(fraction * durationMin);
+                        const xh = Math.floor(totalExp / 60) % 24;
+                        const xm = totalExp % 60;
+                        const expectedStop = `${String(xh).padStart(2,'0')}:${String(xm).padStart(2,'0')}`;
+
+                        if (scheduledStop !== expectedStop) {
+                            stopTimeHTML = `<s>${scheduledStop}</s><br>${expectedStop}`;
+                        } else {
+                            stopTimeHTML = scheduledStop;
+                        }
+                    } else {
+                        stopTimeHTML = scheduledStop;
+                    }
+                }
+
+                const timeClass = isDelayed ? ' delayed' : '';
+
+                return `<li class="stop-item">
+                    <div class="stop-dot-col"><div class="${dotClass}"></div>${lineHTML}</div>
+                    <div class="stop-info"><div class="stop-name${(!isFirst && !isLast) ? ' dim' : ''}">${stop}</div></div>
+                    <div class="stop-time-col${timeClass}">${stopTimeHTML}</div>
+                </li>`;
+            }).join('');
+
+            stopsHTML = `
+            <div class="stops-section">
+                <div class="stops-title">Gares desservies</div>
+                <ul class="stop-list">${stopsItems}</ul>
+            </div>`;
+        }
+
+        // Footer
+        let footerLinkHTML = '';
+        if (row.detailUrl) {
+            footerLinkHTML = `<a href="${row.detailUrl}" target="_blank" rel="noopener" class="btn-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Voir sur SNCF
+            </a>`;
+        }
+
+        // Build modal
+        overlay.innerHTML = `
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="${headClass}">
+                <div class="train-icon ${iconColor}">${iconEmoji}</div>
+                <div class="modal-head-info">
+                    <div class="modal-head-title">${trainLabel}</div>
+                    <div class="modal-head-sub">${subHTML}</div>
+                </div>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="schedule-bar">
+                    <div class="station">
+                        <div class="station-name">${departStation}</div>
+                        <div class="station-time${depTimeClass}">${depTimeHTML}</div>
+                    </div>
+                    <span class="arrow">&rarr;</span>
+                    <div class="duration">${durationLabel}</div>
+                    <span class="arrow">&rarr;</span>
+                    <div class="station">
+                        <div class="station-name">${destName}</div>
+                        <div class="station-time${arrTimeClass}">${arrTimeHTML}</div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type</span>
+                    <span class="detail-value">${row.trainType || 'TER'} Normandie</span>
+                </div>
+                ${originHTML}
+                ${disruptionHTML}
+                ${stopsHTML}
+            </div>
+            <div class="modal-foot">
+                <button class="btn-secondary" id="modal-close-btn-2">Fermer</button>
+                ${footerLinkHTML}
+            </div>
+        </div>`;
+
+        // Activer le modal
+        requestAnimationFrame(() => {
+            overlay.classList.add('active');
+        });
+
+        // Event listeners pour fermer
+        overlay.querySelector('#modal-close-btn')?.addEventListener('click', closeTrainModal);
+        overlay.querySelector('#modal-close-btn-2')?.addEventListener('click', closeTrainModal);
+
+        // Empêcher la propagation des clics dans le modal
+        overlay.querySelector('.modal')?.addEventListener('click', (e) => e.stopPropagation());
+
+        lucide.createIcons();
     }
 
     // ---------- Init

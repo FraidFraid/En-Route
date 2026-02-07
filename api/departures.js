@@ -63,12 +63,24 @@ export default async function handler(req, res) {
                 const rawResp = await fetch(rawUrl, {
                     headers: {
                         'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-                        'Referer': 'https://www.garesetconnexions.sncf/',
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                        'Referer': 'https://www.garesetconnexions.sncf/fr/gares-services/rouen-rive-droite',
+                        'Origin': 'https://www.garesetconnexions.sncf',
+                        'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"macOS"',
+                        'sec-fetch-dest': 'empty',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-site': 'same-origin',
                     }
                 });
-                const rawData = await rawResp.json();
-                // Extraire uniquement les champs liés à la voie pour chaque train
+                const rawText = await rawResp.text();
+                let rawData;
+                try { rawData = JSON.parse(rawText); } catch { rawData = null; }
+
+                const isBlocked = !Array.isArray(rawData);
+                const blockedReason = isBlocked ? (rawData?.url ? 'DataDome captcha' : 'Non-array response') : null;
+
                 const summary = (Array.isArray(rawData) ? rawData : []).slice(0, 10).map(t => ({
                     trainNumber: t.trainNumber,
                     destination: t.traffic?.destination,
@@ -79,7 +91,16 @@ export default async function handler(req, res) {
                     trainType: t.trainType,
                     allKeys: Object.keys(t)
                 }));
-                res.status(200).json({ debug: true, raw_count: Array.isArray(rawData) ? rawData.length : 0, trains: summary });
+                res.status(200).json({
+                    debug: true,
+                    source: 'garesetconnexions',
+                    blocked: isBlocked,
+                    blockedReason,
+                    httpStatus: rawResp.status,
+                    raw_count: Array.isArray(rawData) ? rawData.length : 0,
+                    rawSnippet: isBlocked ? rawText.substring(0, 300) : undefined,
+                    trains: summary
+                });
                 return;
             } catch (e) {
                 res.status(500).json({ debug: true, error: e.message });
@@ -89,11 +110,13 @@ export default async function handler(req, res) {
 
         // 1) Essayer garesetconnexions (données temps réel avec voies)
         let rows = await fetchGaresEtConnexions(station, dest, UIC[station], CORRIDOR);
+        let source = rows ? 'garesetconnexions' : null;
 
         // 2) Fallback sur l'API SNCF officielle si garesetconnexions échoue
         if (!rows && SNCF_API_KEY) {
             console.log('garesetconnexions failed, falling back to SNCF API');
             rows = await fetchSncfApi(station, dest, SNCF_API_KEY, STOPS[station], CORRIDOR);
+            source = rows ? 'sncf_api' : null;
         }
 
         if (!rows) {
@@ -105,7 +128,7 @@ export default async function handler(req, res) {
         rows.sort((a, b) => a.ts - b.ts);
         const limitedRows = rows.slice(0, limit);
 
-        res.status(200).json({ station, rows: limitedRows });
+        res.status(200).json({ station, source, rows: limitedRows });
 
     } catch (error) {
         console.error('Departures error:', error);

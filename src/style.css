@@ -64,6 +64,33 @@
     --bg-gradient-3: rgba(139, 92, 246, 0.04);
 }
 
+/* Mint Mode — pastel vert menthe, fond blanc cassé */
+[data-theme="mint"] {
+    color-scheme: light;
+    --bg-0: #F0F5F3;
+    --bg-1: #F7FAF8;
+    --layer: #FFFFFF;
+    --ink-1: #1A2E28;
+    --ink-2: #3D5A50;
+    --ink-3: #6B8F82;
+    --primary: #34A07E;
+    --primary-weak: #D1F0E4;
+    --bd: #D5E5DD;
+    --bd-soft: #E2EDE7;
+
+    --ok: #10B981;
+    --warn: #D97706;
+    --err: #DC2626;
+    --accent: #34A07E;
+
+    --glass: rgba(255, 255, 255, 0.9);
+    --shadow: 0 4px 24px rgba(52, 160, 126, 0.08);
+
+    --bg-gradient-1: rgba(52, 160, 126, 0.15);
+    --bg-gradient-2: rgba(110, 231, 183, 0.12);
+    --bg-gradient-3: rgba(167, 243, 208, 0.10);
+}
+
 /* Layout & typo */
 html,
 body {
@@ -303,44 +330,44 @@ h2 {
     color: var(--ink-1);
 }
 
-/* Light mode specific overrides */
-[data-theme="light"] .text-zinc-100 {
+/* Light & Mint mode Tailwind overrides */
+:is([data-theme="light"], [data-theme="mint"]) .text-zinc-100 {
     color: var(--ink-1) !important;
 }
 
-[data-theme="light"] .text-zinc-300 {
+:is([data-theme="light"], [data-theme="mint"]) .text-zinc-300 {
     color: var(--ink-2) !important;
 }
 
-[data-theme="light"] .text-zinc-400 {
+:is([data-theme="light"], [data-theme="mint"]) .text-zinc-400 {
     color: var(--ink-3) !important;
 }
 
-[data-theme="light"] .text-zinc-500 {
+:is([data-theme="light"], [data-theme="mint"]) .text-zinc-500 {
     color: var(--ink-3) !important;
 }
 
-[data-theme="light"] .bg-zinc-800\/50 {
+:is([data-theme="light"], [data-theme="mint"]) .bg-zinc-800\/50 {
     background: var(--layer) !important;
 }
 
-[data-theme="light"] .hover\:bg-zinc-700\/50:hover {
+:is([data-theme="light"], [data-theme="mint"]) .hover\:bg-zinc-700\/50:hover {
     background: var(--bd) !important;
 }
 
-[data-theme="light"] .border-zinc-700\/50 {
+:is([data-theme="light"], [data-theme="mint"]) .border-zinc-700\/50 {
     border-color: var(--bd) !important;
 }
 
-[data-theme="light"] .border-zinc-800 {
+:is([data-theme="light"], [data-theme="mint"]) .border-zinc-800 {
     border-color: var(--bd) !important;
 }
 
-[data-theme="light"] .divide-zinc-800>*+* {
+:is([data-theme="light"], [data-theme="mint"]) .divide-zinc-800>*+* {
     border-color: var(--bd-soft) !important;
 }
 
-[data-theme="light"] .bg-blue-600 {
+:is([data-theme="light"], [data-theme="mint"]) .bg-blue-600 {
     background: var(--primary) !important;
 }
 

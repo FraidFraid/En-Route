@@ -822,14 +822,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (stationKey === 'lehavre' && extra.dest === 'rouen_all') {
                     try {
                         const r = await fetchDeps('lehavre', { dest: 'rouen', limit: 10 });
-                        const combined = (r.rows || []).map(t => {
-                            const isParis = /paris/i.test(t.to || '');
-                            return {
-                                ...t,
-                                to: isParis ? 'Rouen (via Paris)' : 'Rouen',
-                                trainType: isParis ? 'via_paris' : 'direct'
-                            };
-                        });
+                        const combined = (r.rows || []).map(t => ({
+                            ...t,
+                            to: 'Rouen'
+                        }));
                         allTrains.push(...combined);
                     } catch { }
                 } else {
@@ -953,7 +949,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="time-col">${timeHTML}</div>
             <div class="info-col">
               <div class="dest">${cleanDestination(row.to)}</div>
-              ${row.trainType === 'via_paris' ? '<div class="text-[11px] text-blue-400">Arrêt à Rouen</div>' : ''}
               ${arrivalHintHTML}
             </div>
             <div class="meta-col">

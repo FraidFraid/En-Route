@@ -96,6 +96,69 @@ html[data-theme="mint"] body {
     background-attachment: fixed;
 }
 
+/* Mint — boutons dégradés cyan→vert */
+[data-theme="mint"] .btn-link,
+[data-theme="mint"] .platform-badge,
+[data-theme="mint"] .pill {
+    background: linear-gradient(135deg, #4bd0d6 0%, #7de0b6 100%) !important;
+    color: #0b1d1b !important;
+    border: none !important;
+}
+
+[data-theme="mint"] .btn-link:hover,
+[data-theme="mint"] .platform-badge:hover {
+    filter: brightness(1.05);
+}
+
+/* Mint — tab ville active = dégradé pastel */
+[data-theme="mint"] .city-detected {
+    background: linear-gradient(90deg, #e8f7ff 0%, #ebfff4 100%) !important;
+    border-color: rgba(75, 208, 214, 0.25) !important;
+    color: #0c2025 !important;
+    box-shadow: none !important;
+}
+
+/* Mint — badges statut */
+[data-theme="mint"] .status-ontime {
+    background: rgba(47, 191, 113, 0.12) !important;
+    color: #1a6b42 !important;
+    border-color: rgba(47, 191, 113, 0.3) !important;
+}
+
+[data-theme="mint"] .status-delayed {
+    background: rgba(240, 161, 0, 0.15) !important;
+    color: #8a5b00 !important;
+    border-color: rgba(240, 161, 0, 0.35) !important;
+}
+
+[data-theme="mint"] .status-cancelled {
+    background: rgba(220, 38, 38, 0.12) !important;
+    color: #991b1b !important;
+    border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+/* Mint — next-train highlight dégradé */
+[data-theme="mint"] .train-row.next-train {
+    background: linear-gradient(135deg, rgba(75, 208, 214, 0.1), transparent 60%);
+    border-left-color: #4bd0d6;
+}
+
+/* Mint — boutons secondaires */
+[data-theme="mint"] .btn,
+[data-theme="mint"] .btn-secondary,
+[data-theme="mint"] .theme-toggle {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(12, 24, 38, 0.08);
+    color: #5a6a7c;
+}
+
+[data-theme="mint"] .btn:hover,
+[data-theme="mint"] .btn-secondary:hover,
+[data-theme="mint"] .theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: #0d1b2a;
+}
+
 /* Layout & typo */
 html,
 body {

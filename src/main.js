@@ -47,7 +47,7 @@ function toggleTheme() {
 
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-        const colors = { dark: '#000000', light: '#FFFFFF', mint: '#F0F5F3' };
+        const colors = { dark: '#000000', light: '#FFFFFF', mint: '#f6f8fb' };
         metaThemeColor.setAttribute('content', colors[newTheme] || '#000000');
     }
 }

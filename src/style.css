@@ -64,31 +64,36 @@
     --bg-gradient-3: rgba(139, 92, 246, 0.04);
 }
 
-/* Mint Mode — pastel vert menthe, fond blanc cassé */
+/* Mint Mode — mockup-app.html exact */
 [data-theme="mint"] {
     color-scheme: light;
-    --bg-0: #F0F5F3;
-    --bg-1: #F7FAF8;
-    --layer: #FFFFFF;
-    --ink-1: #1A2E28;
-    --ink-2: #3D5A50;
-    --ink-3: #6B8F82;
-    --primary: #34A07E;
-    --primary-weak: #D1F0E4;
-    --bd: #D5E5DD;
-    --bd-soft: #E2EDE7;
+    --bg-0: #eef3f9;
+    --bg-1: #f6f8fb;
+    --layer: rgba(255, 255, 255, 0.92);
+    --ink-1: #0d1b2a;
+    --ink-2: #5a6a7c;
+    --ink-3: #5a6a7c;
+    --primary: #4bd0d6;
+    --primary-weak: rgba(75, 208, 214, 0.15);
+    --bd: rgba(12, 24, 38, 0.08);
+    --bd-soft: rgba(12, 24, 38, 0.05);
 
-    --ok: #10B981;
-    --warn: #D97706;
+    --ok: #2fbf71;
+    --warn: #f0a100;
     --err: #DC2626;
-    --accent: #34A07E;
+    --accent: #7de0b6;
 
-    --glass: rgba(255, 255, 255, 0.9);
-    --shadow: 0 4px 24px rgba(52, 160, 126, 0.08);
+    --glass: rgba(255, 255, 255, 0.75);
+    --shadow: 0 22px 60px rgba(20, 36, 64, 0.16);
+}
 
-    --bg-gradient-1: rgba(52, 160, 126, 0.15);
-    --bg-gradient-2: rgba(110, 231, 183, 0.12);
-    --bg-gradient-3: rgba(167, 243, 208, 0.10);
+[data-theme="mint"] body,
+html[data-theme="mint"] body {
+    background:
+        radial-gradient(900px 600px at 10% 10%, #e5f1ff 0%, transparent 65%),
+        radial-gradient(800px 600px at 90% 15%, #e6fff5 0%, transparent 60%),
+        linear-gradient(180deg, #f6f8fb 0%, #eef3f9 100%);
+    background-attachment: fixed;
 }
 
 /* Layout & typo */

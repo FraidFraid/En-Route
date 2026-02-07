@@ -243,11 +243,6 @@ h2 {
     transform: translateY(0);
 }
 
-/* ————————— Indicateur de fraîcheur ————————— */
-.freshness-indicator {
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-weight: 600;
-}
 
 /* ————————— Animation Fade-in pour Géolocalisation ————————— */
 .fade-in {

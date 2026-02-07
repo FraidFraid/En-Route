@@ -48,12 +48,45 @@ export default async function handler(req, res) {
     let limit = parseInt(req.query.limit || 3, 10);
     limit = Math.max(1, Math.min(10, limit));
 
+    const debug = req.query.debug === 'true';
+
     if (!UIC[station]) {
         res.status(400).json({ error: "station inconnue" });
         return;
     }
 
     try {
+        // Mode debug : retourne les données brutes de l'API garesetconnexions
+        if (debug) {
+            try {
+                const rawUrl = `https://www.garesetconnexions.sncf/schedule-table/Departures/${UIC[station]}`;
+                const rawResp = await fetch(rawUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
+                        'Referer': 'https://www.garesetconnexions.sncf/',
+                    }
+                });
+                const rawData = await rawResp.json();
+                // Extraire uniquement les champs liés à la voie pour chaque train
+                const summary = (Array.isArray(rawData) ? rawData : []).slice(0, 10).map(t => ({
+                    trainNumber: t.trainNumber,
+                    destination: t.traffic?.destination,
+                    scheduledTime: t.scheduledTime,
+                    platform: t.platform,
+                    track: t.track,
+                    voie: t.voie,
+                    trainType: t.trainType,
+                    allKeys: Object.keys(t)
+                }));
+                res.status(200).json({ debug: true, raw_count: Array.isArray(rawData) ? rawData.length : 0, trains: summary });
+                return;
+            } catch (e) {
+                res.status(500).json({ debug: true, error: e.message });
+                return;
+            }
+        }
+
         // 1) Essayer garesetconnexions (données temps réel avec voies)
         let rows = await fetchGaresEtConnexions(station, dest, UIC[station], CORRIDOR);
 
@@ -138,7 +171,18 @@ async function fetchGaresEtConnexions(station, dest, uicCode, CORRIDOR) {
                 horaireHtml = `<span>${hPrevue}</span>`;
             }
 
-            const platform = train.platform?.track || '';
+            // Extraction voie — explorer toutes les variantes possibles de l'API
+            const platform = train.platform?.track
+                || train.platform?.label
+                || train.platform?.number
+                || train.track
+                || train.voie
+                || '';
+
+            // Log pour debug en prod (visible dans les logs Vercel)
+            if (train.platform || train.track || train.voie) {
+                console.log(`[VOIE] Train ${train.trainNumber}: platform=${JSON.stringify(train.platform)}, track=${train.track}, voie=${train.voie}`);
+            }
 
             // Extraire le message de perturbation
             const disruptions = [];

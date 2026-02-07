@@ -336,7 +336,7 @@ async function fetchSncfApi(station, dest, apiKey, stopArea, CORRIDOR) {
                 ts: realTs,
                 horaire_double_html: horaireHtml,
                 time: hReelle,
-                trainType: "normal",
+                trainType: "TER",
                 detailUrl: '',
                 disruption: '',
                 arrivalScheduled: scheduledArr,

@@ -15,8 +15,6 @@ const lucide = {
 let isManualMode = false; // Mode manuel activé ?
 let manualCity = null; // Ville sélectionnée manuellement
 let isFullViewMode = false; // Mode vue complète ?
-let lastWeatherUpdate = {}; // Timestamps des dernières mises à jour météo
-let lastTrainUpdate = {}; // Timestamps des dernières mises à jour trains
 
 // ---------- Theme Management ----------
 let isSkyThemeActive = false;
@@ -171,9 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ou l'IP serveur distant.
     // Par défaut j'utilise l'IP vue dans les logs, mais c'est à vérifier.
 
-    // URL de Production (Vercel)
+    // URL de Production
     // Pour le web, on utilise des chemins relatifs ("/api/...")
-    // Pour le mobile (Capacitor), il faudra mettre l'URL complète de ton projet Vercel.
+    // Pour le mobile (Capacitor), il faut l'URL complète du projet.
 
     // Détection mode natif (Capacitor) vs web
     const isNative = window.location.protocol === 'file:' || window.location.protocol === 'capacitor:';
@@ -611,46 +609,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // Indicateur de fraîcheur des données
-    function updateFreshnessIndicator(key, type) {
-        const timestamp = type === 'weather' ? lastWeatherUpdate[key] : lastTrainUpdate[key];
-        if (!timestamp) return;
-
-        const now = Date.now();
-        const diff = now - timestamp;
-        const seconds = Math.floor(diff / 1000);
-        const minutes = Math.floor(seconds / 60);
-
-        let text, color, icon;
-        if (minutes < 1) {
-            text = `${seconds}s`;
-            color = 'text-green-400';
-            icon = '🟢';
-        } else if (minutes < 5) {
-            text = `${minutes}min`;
-            color = 'text-yellow-400';
-            icon = '🟡';
-        } else {
-            text = `${minutes}min`;
-            color = 'text-red-400';
-            icon = '🔴';
-        }
-
-        const selector = type === 'weather' ?
-            `.freshness-indicator[data-city="${key}"]` :
-            `.freshness-indicator[data-direction="${key}"]`;
-
-        const indicator = document.querySelector(selector);
-        if (indicator) {
-            indicator.innerHTML = `<span class="${color}">${icon} ${text}</span>`;
-        }
-    }
-
-    // Mettre à jour tous les indicateurs périodiquement
-    setInterval(() => {
-        Object.keys(lastWeatherUpdate).forEach(key => updateFreshnessIndicator(key, 'weather'));
-        Object.keys(lastTrainUpdate).forEach(key => updateFreshnessIndicator(key, 'train'));
-    }, 10000); // Toutes les 10 secondes
 
 
     // Skeleton HTML pour la météo
@@ -679,7 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="flex items-center justify-between mb-2">
 <div class="flex items-center gap-2">
   <div class="flex items-center gap-1 text-xs text-zinc-300"><i data-lucide="map-pin" class="w-3 h-3"></i><span>${city.name}</span></div>
-  <div class="freshness-indicator text-[10px]" data-city="${city.weatherKey}"></div>
 </div>
 <button class="btn text-xs px-2 py-1" data-action="refresh">${createIcon('refresh-cw', 'w-3 h-3')}</button>
 </div>
@@ -698,9 +655,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 lucide.createIcons();
             }
             try {
-                // Utilisation de NOTRE backend Vercel (sans .php)
+                // Appel API météo
                 const url = new URL(`${API_BASE_URL}/api/weather`, window.location.origin);
-                // Le script Vercel attend 'lat' et 'lon' (ou 'city')
+                // Paramètres: 'lat' et 'lon' (ou 'city')
                 url.searchParams.append('lat', city.lat);
                 url.searchParams.append('lon', city.lon);
                 url.searchParams.append('city', city.weatherKey || ''); // 'rouen' ou 'lehavre'
@@ -709,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const r = await fetch(url.toString());
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const j = await r.json();
-                console.log("Météo reçue (Vercel) pour", city.name, j);
+                console.log("Météo reçue pour", city.name, j);
 
                 const cur = j.current_weather;
                 if (!cur) throw new Error('no-current');
@@ -740,9 +697,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>`;
                 lucide.createIcons();
 
-                // Mettre à jour le timestamp
-                lastWeatherUpdate[city.weatherKey] = Date.now();
-                updateFreshnessIndicator(city.weatherKey, 'weather');
 
                 if (isRefresh) showNotification(`${createIcon('check', 'w-3 h-3 inline')} Météo ${city.name} mise à jour`, 'success');
             } catch (e) {
@@ -763,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------- Trains
     async function updateWeather() {
-        // Pour Vercel, on force Rouen ou Le Havre selon la position approximative
+        // On force Rouen ou Le Havre selon la position approximative
         // ou on envoie lat/lon au script 
         const u = new URL(`${API_BASE_URL}/api/weather`, window.location.origin);
         if (typeof lastLat !== 'undefined' && lastLat && lastLon) {
@@ -784,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchDeps(station, extra = {}) {
-        // IMPORTANT: On utilise departures (sans .php) pour l'API Vercel
+        // Appel API départs
         const params = new URLSearchParams({ station, ...extra }).toString();
         // Construit l'URL proprement
         const baseUrl = API_BASE_URL || window.location.origin;
@@ -1003,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${arrivalHintHTML}
             </div>
             <div class="meta-col">
-              <span class="train-number">${row.number || ''}</span>
+              <span class="train-number">${row.number ? '#' + row.number : ''}</span>
               ${platformHTML}
             </div>
             <span class="${statusClass}">${statusText}</span>
@@ -1120,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const arrTimeClass = (isDelayed && arrScheduled !== arrExpected) ? ' delayed' : '';
 
         // Details
-        const trainLabel = `${row.trainType || 'TER'} ${row.number}`;
+        const trainLabel = `${row.trainType || 'TER'} #${row.number}`;
         const originHTML = row.origin ? `
             <div class="detail-row">
                 <span class="detail-label">Origine</span>
@@ -1226,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Type</span>
-                    <span class="detail-value">${row.trainType || 'TER'} Normandie</span>
+                    <span class="detail-value">${row.trainType || 'TER'}</span>
                 </div>
                 ${originHTML}
                 ${disruptionHTML}

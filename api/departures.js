@@ -41,10 +41,6 @@ export default async function handler(req, res) {
             duration: 65,
             stops: ["Le Havre", "Bréauté-Beuzeville", "Yvetot", "Motteville", "Pavilly", "Barentin", "Rouen Rive Droite"]
         },
-        "lehavre_paris": {
-            duration: 135,
-            stops: ["Le Havre", "Bréauté-Beuzeville", "Yvetot", "Rouen Rive Droite", "Val-de-Reuil", "Paris Saint-Lazare"]
-        }
     };
 
     const station = (req.query.station || '').toLowerCase();
@@ -116,11 +112,8 @@ async function fetchGaresEtConnexions(station, dest, uicCode, CORRIDOR) {
                 // Depuis Rouen : on veut les trains vers Le Havre / Harfleur / Montivilliers / Graville
                 if (/(le\s*havre|harfleur|montivilliers|graville)/i.test(destination)) keep = true;
             } else if (station === 'lehavre') {
-                // Depuis Le Havre : on veut les trains vers Rouen ou Paris (qui passent par Rouen)
-                if (dest === 'paris' && /paris/i.test(destination)) keep = true;
-                else if (dest === 'rouen' || dest === 'rouen_all' || dest === '') {
-                    if (/paris/i.test(destination) || /rouen/i.test(destination)) keep = true;
-                }
+                // Depuis Le Havre : on veut les trains qui passent par Rouen (y compris ceux allant à Paris)
+                if (/paris/i.test(destination) || /rouen/i.test(destination)) keep = true;
             }
 
             if (!keep) continue;
@@ -230,7 +223,8 @@ function findCorridor(station, destination, CORRIDOR) {
         if (/yvetot/i.test(destLow)) return CORRIDOR["rouen_yvetot"];
         if (/bréauté|breauté|beuzeville/i.test(destLow)) return CORRIDOR["rouen_breauté"];
     } else if (station === 'lehavre') {
-        if (/paris/i.test(destLow)) return CORRIDOR["lehavre_paris"];
+        // Toujours utiliser le corridor Le Havre → Rouen
+        // Les trains vers Paris passent par Rouen, on ne montre que jusqu'à Rouen
         return CORRIDOR["lehavre_rouen"];
     }
     return null;
@@ -302,8 +296,8 @@ async function fetchSncfApi(station, dest, apiKey, stopArea, CORRIDOR) {
             if (station === 'rouen') {
                 if (/(le\s*havre|harfleur|montivilliers|graville)/i.test(direction)) keep = true;
             } else if (station === 'lehavre') {
-                if (dest === 'paris' && /paris/i.test(direction)) keep = true;
-                else if ((dest === 'rouen' || dest === 'rouen_all' || dest === '') && (/paris/i.test(direction) || /rouen/i.test(direction))) keep = true;
+                // Trains qui passent par Rouen (y compris ceux allant à Paris)
+                if (/paris/i.test(direction) || /rouen/i.test(direction)) keep = true;
             }
 
             if (!keep) continue;

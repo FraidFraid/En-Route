@@ -754,6 +754,67 @@ document.addEventListener('DOMContentLoaded', () => {
         return r.json();
     }
 
+    // UIC codes pour enrichissement côté client
+    const UIC_CODES = {
+        'rouen': '0087411017',
+        'lehavre': '0087413013'
+    };
+
+    // Tentative d'enrichissement des voies depuis garesetconnexions côté client
+    // Le navigateur peut passer DataDome plus facilement que le serveur
+    async function enrichPlatformsClientSide(stationKey, trains) {
+        try {
+            const uic = UIC_CODES[stationKey];
+            if (!uic || !trains || trains.length === 0) return trains;
+
+            const url = `https://www.garesetconnexions.sncf/schedule-table/Departures/${uic}`;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000);
+
+            const resp = await fetch(url, {
+                signal: controller.signal,
+                headers: { 'Accept': 'application/json' }
+            });
+            clearTimeout(timeout);
+
+            if (!resp.ok) return trains;
+
+            const data = await resp.json();
+            if (!Array.isArray(data)) return trains;
+
+            console.log('[ENRICHISSEMENT] Données garesetconnexions reçues côté client:', data.length, 'trains');
+
+            // Créer un index par numéro de train pour matching rapide
+            const platformMap = {};
+            for (const t of data) {
+                const num = t.trainNumber || '';
+                const voie = t.platform?.track || t.platform?.label || t.platform?.number || t.track || t.voie || '';
+                if (num && voie) {
+                    platformMap[num] = voie;
+                }
+            }
+
+            // Enrichir les trains qui n'ont pas de voie
+            let enriched = 0;
+            for (const train of trains) {
+                if (!train.platform && train.number && platformMap[train.number]) {
+                    train.platform = platformMap[train.number];
+                    enriched++;
+                }
+            }
+
+            if (enriched > 0) {
+                console.log(`[ENRICHISSEMENT] ${enriched} voie(s) ajoutée(s) depuis garesetconnexions`);
+            }
+
+            return trains;
+        } catch (e) {
+            // CORS ou autre erreur — on échoue silencieusement
+            console.log('[ENRICHISSEMENT] Échec côté client (CORS/DataDome probable):', e.message);
+            return trains;
+        }
+    }
+
     // Skeleton HTML pour le loading
     function getSkeletonTrainRows(count = 3) {
         return Array(count).fill(`
@@ -819,9 +880,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 let allTrains = [];
+                let dataSource = '';
                 if (stationKey === 'lehavre' && extra.dest === 'rouen_all') {
                     try {
                         const r = await fetchDeps('lehavre', { dest: 'rouen', limit: 10 });
+                        dataSource = r.source || '';
                         const combined = (r.rows || []).map(t => ({
                             ...t,
                             to: 'Rouen'
@@ -830,12 +893,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     } catch { }
                 } else {
                     const r = await fetchDeps(stationKey, { ...extra, limit: 10 });
+                    dataSource = r.source || '';
                     allTrains = r.rows || [];
                 }
 
                 allTrains = allTrains
                     .sort((a, b) => (a.ts || 0) - (b.ts || 0))
                     .slice(0, parseInt(extra.limit) || 3);
+
+                // Tenter l'enrichissement des voies côté client si des trains n'ont pas de voie
+                const hasMissingPlatforms = allTrains.some(t => !t.platform);
+                if (hasMissingPlatforms) {
+                    const enrichStation = (stationKey === 'lehavre' && extra.dest === 'rouen_all') ? 'lehavre' : stationKey;
+                    allTrains = await enrichPlatformsClientSide(enrichStation, allTrains);
+                }
 
                 // Analyse retards pour notifications
                 checkForDelays(allTrains);
@@ -960,6 +1031,16 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
                     rowsEl.appendChild(div);
                 });
+
+                // Indicateur de source de données
+                if (dataSource) {
+                    const sourceEl = document.createElement('div');
+                    const sourceLabel = dataSource === 'garesetconnexions' ? 'Temps réel' : 'SNCF API';
+                    const sourceColor = dataSource === 'garesetconnexions' ? 'text-green-400' : 'text-zinc-500';
+                    sourceEl.className = `text-[9px] ${sourceColor} mt-1 text-right opacity-70`;
+                    sourceEl.textContent = sourceLabel;
+                    rowsEl.appendChild(sourceEl);
+                }
 
             } catch (e) {
                 console.error(e);

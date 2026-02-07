@@ -144,9 +144,21 @@ async function fetchGaresEtConnexions(station, dest, uicCode, CORRIDOR) {
         const url = `https://www.garesetconnexions.sncf/schedule-table/Departures/${uicCode}`;
         const response = await fetch(url, {
             headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-                'Referer': 'https://www.garesetconnexions.sncf/',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                'Referer': 'https://www.garesetconnexions.sncf/fr/gares-services/rouen-rive-droite',
+                'Origin': 'https://www.garesetconnexions.sncf',
+                'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-origin',
+                'DNT': '1',
             }
         });
 
@@ -304,7 +316,8 @@ async function fetchSncfApi(station, dest, apiKey, stopArea, CORRIDOR) {
     try {
         const SNCF_BASE = "https://api.sncf.com/v1/coverage/sncf";
         const count = 30;
-        const url = `${SNCF_BASE}/stop_areas/${encodeURIComponent(stopArea)}/departures?count=${count}`;
+        // data_freshness=realtime pour obtenir les voies et retards en temps réel
+        const url = `${SNCF_BASE}/stop_areas/${encodeURIComponent(stopArea)}/departures?count=${count}&data_freshness=realtime`;
 
         const response = await fetch(url, {
             headers: {
@@ -350,6 +363,9 @@ async function fetchSncfApi(station, dest, apiKey, stopArea, CORRIDOR) {
             const delayMin = Math.max(0, Math.round((realTs - baseTs) / 60000));
 
             const platform = d.stop_point?.platform_code || d.platform_code || di.platform || "";
+            if (platform) {
+                console.log(`[VOIE-SNCF] Train ${di.headsign || di.code}: platform=${platform} (stop_point.platform_code=${d.stop_point?.platform_code}, di.platform=${di.platform})`);
+            }
 
             const isDelayed = delayMin > 0;
             const isCancelled = (d.status === 'cancelled') || (di.status === 'cancelled');
